@@ -833,10 +833,11 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": false,
+			"enabled": true,
 			"runs": 200
 		},
-		"remappings": []
+		"remappings": [],
+		"viaIR": true
 	},
 	"sources": {
 		"@openzeppelin/contracts/access/Ownable.sol": {
@@ -864,11 +865,11 @@
 			]
 		},
 		"CombineNumber.sol": {
-			"keccak256": "0x5456adc1d594f5d1631a9ff89b9f45f656ec50cd43d8addc1fb4f8d78a592eff",
+			"keccak256": "0xf978fe423484d63abcf6daf6330027e87da74ce2ae8feb909f3fcb540ffab92b",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://72b4b7d3fb0e053ec6514c1e593fd1cb2d1663d19954c5e9a5f6d2b92a16b98c",
-				"dweb:/ipfs/QmQX2xzq8bUs5KtTrRtaw2pM89z11vu14rMun51VAeiGSX"
+				"bzz-raw://dac6e5ea9484eac5a62f12d2cdd0e1659fc3ca0f9dcd626193be60080017bf4e",
+				"dweb:/ipfs/QmWqsVSb4u7QEkDUR7TtMfdfMhTrKUTMveHxCjQ3NmZv5G"
 			]
 		},
 		"IERC4906.sol": {
@@ -880,11 +881,11 @@
 			]
 		},
 		"Segments.sol": {
-			"keccak256": "0x1df8fd9b19ccdd962f41a4c649392fc450b9a0db39ced6212475e01cd71c7bf9",
+			"keccak256": "0x3dcb19f99e59a633c276c7a7099e3bd9eb20d823d06dec064763759b14dc0172",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://bf7c4cb527c7950b6cf1a6c37fcab9c1aa8eb6bd098f91b0e3b7335ad2fb0cb2",
-				"dweb:/ipfs/QmSaQr1ewFv78J6JU3T7TWNQ6jJ9apRDQthNiyqvHQ1mQ2"
+				"bzz-raw://a67ad8ff426fc5a15293d14edd7588b4e83a47a8acb039593550e2beefd13cb9",
+				"dweb:/ipfs/QmRyEiTHjDJWFf9CbW2QKxXxMczoqZfLvBbsM8UcYKC2hm"
 			]
 		},
 		"Utilities.sol": {

@@ -72,7 +72,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         }
 
         newValues[tokens[0]] = newValue;
-        baseColors[tokens[0]] = utils.random(tokens[0], 1, 4);
+        baseColors[tokens[0]] = utils.randomRange(tokens[0], 1, 4);
         emit MetadataUpdate(tokens[0]);
     }
 

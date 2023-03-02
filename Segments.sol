@@ -349,42 +349,44 @@ library segments {
             )
         );
 
-        uint256 length = bytes(value).length;
-        Number memory number = getNumbers(value);
-        if (length == 1) {
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(3, number.d))
-            );
-        } else if (length == 2) {
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(2, number.c))
-            );
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(3, number.d))
-            );
-        } else if (length == 3) {
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(1, number.b))
-            );
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(2, number.c))
-            );
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(3, number.d))
-            );
-        } else if (length == 4) {
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(0, number.a))
-            );
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(1, number.b))
-            );
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(2, number.c))
-            );
-            styles = string(
-                abi.encodePacked(styles, getNumberStyle(3, number.d))
-            );
+        if (utils.compare(value, "")) {} else {
+            uint256 length = bytes(value).length;
+            Number memory number = getNumbers(value);
+            if (length == 1) {
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(3, number.d))
+                );
+            } else if (length == 2) {
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(2, number.c))
+                );
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(3, number.d))
+                );
+            } else if (length == 3) {
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(1, number.b))
+                );
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(2, number.c))
+                );
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(3, number.d))
+                );
+            } else if (length == 4) {
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(0, number.a))
+                );
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(1, number.b))
+                );
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(2, number.c))
+                );
+                styles = string(
+                    abi.encodePacked(styles, getNumberStyle(3, number.d))
+                );
+            }
         }
 
         return string(abi.encodePacked(svg, styles, "</style></svg>"));
