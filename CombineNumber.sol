@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import "erc721a/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "erc721a/contracts/ERC721A.sol";
 import "./Utilities.sol";
 import "./Segments.sol";
-import "./IERC4906.sol";
+
+interface IERC4906 is IERC721A {
+  event MetadataUpdate(uint256 _tokenId);
+}
 
 contract CombineNumber is ERC721A, Ownable, IERC4906 {
     uint256 public price = 0;
     bool public isCombinable = false;
-    // string public luckyNumber;
+    string public luckyNumber;
 
     mapping(uint256 => string) newValues;
     mapping(uint256 => uint256) baseColors;
@@ -36,17 +39,17 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         if (bytes(newValue).length > 4) {
             revert("value no more than 4 characters");
         }
-        // if (
-        //     !utils.compare(luckyNumber, "") &&
-        //     utils.compare(luckyNumber, newValue)
-        // ) {
-        //     revert(
-        //         string.concat(
-        //             "can't combine because lucky number is ",
-        //             luckyNumber
-        //         )
-        //     );
-        // }
+        if (
+            !utils.compare(luckyNumber, "") &&
+            utils.compare(luckyNumber, newValue)
+        ) {
+            revert(
+                string.concat(
+                    "can't combine because lucky number is ",
+                    luckyNumber
+                )
+            );
+        }
         for (uint256 i = 1; i < tokens.length; i++) {
             _burn(tokens[i]);
             newValues[tokens[i]] = "";
@@ -106,7 +109,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         require(payable(msg.sender).send(address(this).balance));
     }
 
-    // function randomLuckyNumber() public onlyOwner {
-    //     luckyNumber = utils.randomString(block.timestamp, 4);
-    // }
+    function randomLuckyNumber() public onlyOwner {
+        luckyNumber = utils.randomString(block.timestamp, 4);
+    }
 }
