@@ -8,12 +8,9 @@ import "./Segments.sol";
 import "./IERC4906.sol";
 
 contract CombineNumber is ERC721A, Ownable, IERC4906 {
-    event CountdownExtended(uint256 _finalBlock);
-
     uint256 public price = 0;
     bool public isCombinable = false;
-    uint256 public finalMintingBlock;
-    string public luckyNumber;
+    // string public luckyNumber;
 
     mapping(uint256 => string) newValues;
     mapping(uint256 => uint256) baseColors;
@@ -26,20 +23,6 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
     }
 
     function handleMint(address recipient, uint256 quantity) internal {
-        uint256 supply = _totalMinted();
-        if (supply >= 1000) {
-            require(
-                utils.secondsRemaining(finalMintingBlock) > 0,
-                "mint is closed"
-            );
-            if (supply < 5000 && (supply + quantity) >= 5000) {
-                finalMintingBlock = block.timestamp + 24 hours;
-                emit CountdownExtended(finalMintingBlock);
-            }
-        } else if (supply + quantity >= 1000) {
-            finalMintingBlock = block.timestamp + 24 hours;
-            emit CountdownExtended(finalMintingBlock);
-        }
         _mint(recipient, quantity);
     }
 
@@ -53,17 +36,17 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         if (bytes(newValue).length > 4) {
             revert("value no more than 4 characters");
         }
-        if (
-            !utils.compare(luckyNumber, "") &&
-            utils.compare(luckyNumber, newValue)
-        ) {
-            revert(
-                string.concat(
-                    "can't combine because lucky number is ",
-                    luckyNumber
-                )
-            );
-        }
+        // if (
+        //     !utils.compare(luckyNumber, "") &&
+        //     utils.compare(luckyNumber, newValue)
+        // ) {
+        //     revert(
+        //         string.concat(
+        //             "can't combine because lucky number is ",
+        //             luckyNumber
+        //         )
+        //     );
+        // }
         for (uint256 i = 1; i < tokens.length; i++) {
             _burn(tokens[i]);
             newValues[tokens[i]] = "";
@@ -115,14 +98,6 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         return 1;
     }
 
-    function getSecondsRemaining() public view returns (uint256) {
-        return utils.secondsRemaining(finalMintingBlock);
-    }
-
-    function mintCount() public view returns (uint256) {
-        return _totalMinted();
-    }
-
     function toggleCombinable() public onlyOwner {
         isCombinable = !isCombinable;
     }
@@ -131,11 +106,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         require(payable(msg.sender).send(address(this).balance));
     }
 
-    function randomLuckyNumber() public onlyOwner {
-        luckyNumber = utils.randomString(block.timestamp, 4);
-    }
-
-    function fixedLuckyNumber() public onlyOwner {
-        luckyNumber = "0123";
-    }
+    // function randomLuckyNumber() public onlyOwner {
+    //     luckyNumber = utils.randomString(block.timestamp, 4);
+    // }
 }

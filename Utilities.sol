@@ -28,18 +28,6 @@ library utils {
         return string(bstr);
     }
 
-    function str2uint(string memory s) internal pure returns (uint256) {
-        bytes memory b = bytes(s);
-        uint256 result = 0;
-        for (uint256 i = 0; i < b.length; i++) {
-            uint256 c = uint256(uint8(b[i]));
-            if (c >= 48 && c <= 57) {
-                result = result * 10 + (c - 48);
-            }
-        }
-        return result;
-    }
-
     function compare(string memory str1, string memory str2)
         internal
         pure
@@ -117,13 +105,5 @@ library utils {
             }
         }
         return rgbValues;
-    }
-
-    function secondsRemaining(uint256 end) internal view returns (uint256) {
-        if (block.timestamp <= end) {
-            return end - block.timestamp;
-        } else {
-            return 0;
-        }
     }
 }

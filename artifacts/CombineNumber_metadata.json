@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.19+commit.7dd6d404"
+		"version": "0.8.18+commit.87f61d96"
 	},
 	"language": "Solidity",
 	"output": {
@@ -277,26 +277,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "finalMintingBlock",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "fixedLuckyNumber",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -310,19 +290,6 @@
 						"internalType": "address",
 						"name": "",
 						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "getSecondsRemaining",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -408,19 +375,6 @@
 				"name": "mint",
 				"outputs": [],
 				"stateMutability": "payable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "mintCount",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -833,11 +787,10 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": true,
+			"enabled": false,
 			"runs": 200
 		},
-		"remappings": [],
-		"viaIR": true
+		"remappings": []
 	},
 	"sources": {
 		"@openzeppelin/contracts/access/Ownable.sol": {
@@ -865,11 +818,11 @@
 			]
 		},
 		"CombineNumber.sol": {
-			"keccak256": "0xf978fe423484d63abcf6daf6330027e87da74ce2ae8feb909f3fcb540ffab92b",
+			"keccak256": "0x40965b3a84bb105118c116ca4fdf03f0c86ea0ccc79f658dcb46fe07a78a3492",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://dac6e5ea9484eac5a62f12d2cdd0e1659fc3ca0f9dcd626193be60080017bf4e",
-				"dweb:/ipfs/QmWqsVSb4u7QEkDUR7TtMfdfMhTrKUTMveHxCjQ3NmZv5G"
+				"bzz-raw://e0225a0a43a51fd4a1183d61a2aebbff3118665070ea68934a68cb5ece59d784",
+				"dweb:/ipfs/QmZuYLp2Q2hdnKiLuA1k72xP1BkgtZSevP9M9QxGeBR5Bm"
 			]
 		},
 		"IERC4906.sol": {
