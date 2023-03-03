@@ -7,13 +7,12 @@ import "./Utilities.sol";
 import "./Segments.sol";
 
 interface IERC4906 is IERC721A {
-  event MetadataUpdate(uint256 _tokenId);
+    event MetadataUpdate(uint256 _tokenId);
 }
 
 contract CombineNumber is ERC721A, Ownable, IERC4906 {
     uint256 public price = 0;
     bool public isCombinable = false;
-    string public luckyNumber;
 
     mapping(uint256 => string) newValues;
     mapping(uint256 => uint256) baseColors;
@@ -22,11 +21,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
 
     function mint(uint256 quantity) public payable {
         require(msg.value >= quantity * price, "not enough eth");
-        handleMint(msg.sender, quantity);
-    }
-
-    function handleMint(address recipient, uint256 quantity) internal {
-        _mint(recipient, quantity);
+        _mint(msg.sender, quantity);
     }
 
     function combine(uint256[] memory tokens) public {
@@ -39,17 +34,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         if (bytes(newValue).length > 4) {
             revert("value no more than 4 characters");
         }
-        if (
-            !utils.compare(luckyNumber, "") &&
-            utils.compare(luckyNumber, newValue)
-        ) {
-            revert(
-                string.concat(
-                    "can't combine because lucky number is ",
-                    luckyNumber
-                )
-            );
-        }
+        
         for (uint256 i = 1; i < tokens.length; i++) {
             _burn(tokens[i]);
             newValues[tokens[i]] = "";
@@ -68,7 +53,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         } else if (!utils.compare(newValues[tokenId], "")) {
             return newValues[tokenId];
         } else {
-            return utils.initValue(tokenId);
+            return utils.randomString(tokenId, 1);
         }
     }
 
@@ -82,14 +67,14 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         bool burned;
         string memory value;
 
-        if (!_exists(tokenId)) {
+        if (utils.compare(newValues[tokenId], "") && !_exists(tokenId)) {
             value = "";
             burned = true;
         } else if (!utils.compare(newValues[tokenId], "")) {
             value = newValues[tokenId];
             burned = false;
         } else {
-            value = utils.initValue(tokenId);
+            value = utils.randomString(tokenId, 1);
             burned = false;
         }
 
@@ -107,9 +92,5 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
 
     function withdraw() external onlyOwner {
         require(payable(msg.sender).send(address(this).balance));
-    }
-
-    function randomLuckyNumber() public onlyOwner {
-        luckyNumber = utils.randomString(block.timestamp, 4);
     }
 }

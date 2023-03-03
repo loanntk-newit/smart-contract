@@ -77,15 +77,6 @@ library utils {
             1;
     }
 
-    function initValue(uint256 tokenId)
-        internal
-        pure
-        returns (string memory value)
-    {
-        value = randomString(tokenId, 1);
-        return value;
-    }
-
     function getRgbs(uint256 tokenId, uint256 baseColor)
         internal
         pure
