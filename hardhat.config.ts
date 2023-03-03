@@ -5,9 +5,8 @@ require("dotenv").config();
 
 const NETWORK = "goerli";
 // const NETWORK = "mainnet";
-const ALCHAEMY_API_KEY_TESTNET = "vCW9I_OL1TEq7kAXbwB5ae2iQTmvu3Ro";
-const ALCHAEMY_API_KEY_MAINNET = "LQf3lQx4zdkyVpzzloPk325iKIPYbyum";
-const PRIVATE_KEY = "vCW9I_OL1TEq7kAXbwB5ae2iQTmvu3Ro";
+const INFURA_API_KEY = "a4e894db57a74d9ea47e4fe50cf0f095";
+const PRIVATE_KEY = "471f4bddc870b6302918bcf9aae77954cae14bf11730a60bfdae62a4aa5390f1";
 const API_KEY = "5MK5SDTQ25QQ1AI9EHZNH73N3TYZQ2FQXC";
 
 const config: HardhatUserConfig = {
@@ -15,12 +14,12 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     goerli: {
-      url: `https://eth-${NETWORK}.g.alchemy.com/v2/${ALCHAEMY_API_KEY_TESTNET}`,
-      accounts: [`0x${PRIVATE_KEY}`],
+      url: `https://${NETWORK}.infura.io/v3/${INFURA_API_KEY}`,
+      accounts: [PRIVATE_KEY],
     },
   },
   solidity: {
-    version: "0.8.18",
+    version: "0.8.19",
     settings: {
       optimizer: {
         enabled: true,
