@@ -86,9 +86,9 @@ library segments {
                 abi.encodePacked(
                     '{"name": "COMBINE_NUMBER ',
                     utils.uint2str(tokenId),
-                    '", "description": "Numbers are art, and we are artists.", "attributes":[{"trait_type": "Number", "max_value": 9999, "value": ',
+                    '", "description": "Numbers are art, and we are artists.", "attributes":[{"trait_type": "Number", "max_value": 9999, "value": "',
                     value,
-                    '},{"trait_type": "Burned", "value": "No"},{"trait_type": "Base Color", "value": "',
+                    '"},{"trait_type": "Burned", "value": "No"},{"trait_type": "Base Color", "value": "',
                     getBaseColorName(baseColor),
                     '"},{"trait_type": "Color", "value": "RGB(',
                     utils.uint2str(rgbs[0]),
