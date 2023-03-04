@@ -13,6 +13,7 @@ interface IERC4906 is IERC721A {
 contract CombineNumber is ERC721A, Ownable, IERC4906 {
     uint256 public price = 0;
     bool public isCombinable = false;
+    string public luckyNumber;
 
     mapping(uint256 => string) newValues;
     mapping(uint256 => uint256) baseColors;
@@ -26,7 +27,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
 
     function combine(uint256[] memory tokens) public {
         require(isCombinable, "combining not active");
-        string memory newValue;
+        string memory newValue = "";
         for (uint256 i = 0; i < tokens.length; i++) {
             require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
             newValue = string.concat(newValue, getValue(tokens[i]));
@@ -34,7 +35,18 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         if (bytes(newValue).length > 4) {
             revert("value no more than 4 characters");
         }
-        
+        if (
+            !utils.compare(luckyNumber, "") &&
+            utils.compare(luckyNumber, newValue)
+        ) {
+            revert(
+                string.concat(
+                    "can't combine because lucky number is ",
+                    luckyNumber
+                )
+            );
+        }
+
         for (uint256 i = 1; i < tokens.length; i++) {
             _burn(tokens[i]);
             newValues[tokens[i]] = "";
@@ -67,7 +79,7 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
         bool burned;
         string memory value;
 
-        if (utils.compare(newValues[tokenId], "") && !_exists(tokenId)) {
+        if (!_exists(tokenId)) {
             value = "";
             burned = true;
         } else if (!utils.compare(newValues[tokenId], "")) {
@@ -88,6 +100,14 @@ contract CombineNumber is ERC721A, Ownable, IERC4906 {
 
     function toggleCombinable() public onlyOwner {
         isCombinable = !isCombinable;
+    }
+
+    function randomLuckyNumber() public onlyOwner {
+        luckyNumber = utils.randomString(block.timestamp, 4);
+    }
+
+    function fixedLuckyNumber() public onlyOwner {
+        luckyNumber = "0123";
     }
 
     function withdraw() external onlyOwner {
