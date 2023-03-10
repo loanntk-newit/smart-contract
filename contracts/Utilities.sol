@@ -38,19 +38,19 @@ library utils {
             keccak256(abi.encodePacked(str2));
     }
 
-    function randomString(uint256 input, uint256 length)
-        internal
-        pure
-        returns (string memory)
-    {
+    function randomString(
+        uint256 input,
+        uint256 length,
+        bytes memory chars
+    ) internal pure returns (string memory) {
         require(length <= 4, "Length cannot be greater than 4");
         require(length >= 1, "Length cannot be Zero");
         bytes memory randomWord = new bytes(length);
-        // since we have 10 Characters
-        bytes memory chars = new bytes(10);
-        chars = "0123456789";
+        // since we have 64 Characters
+        // bytes memory chars = new bytes(64);
+        // chars = "abcdefghijkmnopqrstuvwxyz";
         for (uint256 i = 0; i < length; i++) {
-            uint256 randomNumber = random(input, 10, i);
+            uint256 randomNumber = random(input, chars.length, i);
             // Index access for string is not possible
             randomWord[i] = chars[randomNumber];
         }
@@ -77,6 +77,23 @@ library utils {
             1;
     }
 
+    function initValue(uint256 tokenId, uint256 phase)
+        internal
+        pure
+        returns (string memory value)
+    {
+        if (phase == 1) {
+            value = randomString(tokenId, 1, "ENDIROGLPHW");
+        } else if (phase == 2) {
+            value = randomString(tokenId, 1, "FLEKITWORDN");
+        } else if (phase == 3) {
+            value = randomString(tokenId, 1, "WORTHMEALPS");
+        } else if (phase == 4) {
+            value = randomString(tokenId, 1, "INHALEFOWDP");
+        }
+        return value;
+    }
+
     function getRgbs(uint256 tokenId, uint256 baseColor)
         internal
         pure
@@ -96,5 +113,13 @@ library utils {
             }
         }
         return rgbValues;
+    }
+
+    function secondsRemaining(uint256 end) internal view returns (uint256) {
+        if (block.timestamp <= end) {
+            return end - block.timestamp;
+        } else {
+            return 0;
+        }
     }
 }
