@@ -13,15 +13,20 @@ interface IERC4906 is IERC721A {
 contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     event CountdownExtended(uint256 _finalBlock);
 
+    struct PhaseData {
+        uint256 phase;
+        string value;
+    }
+
     uint256 public price = 0;
     uint256 public currentPhase = 0;
-    uint256 public phaseEndTime;
-    uint256 public mintPhaseDuration = 5 minutes;
     uint256 public mintDuration = 1 minutes;
+    uint256 public mintPhaseDuration = 2 minutes;
+    uint256 public phaseEndTime;
     uint256 public currentPhaseStart = block.timestamp;
     bool public isCombinable = false;
 
-    mapping(uint256 => string) newValues;
+    mapping(uint256 => PhaseData) newValues;
     mapping(uint256 => uint256) baseColors;
 
     constructor() ERC721A("COMBINE-ALPHABET-TEST", "CAT") {}
@@ -41,7 +46,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         _mint(recipient, quantity);
     }
 
-    function combine(uint256[] memory tokens) public {
+    function combine(uint256[] memory tokens, uint256 _phase) public {
         require(isCombinable, "combining not active");
         string memory newValue = "";
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -54,12 +59,13 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
 
         for (uint256 i = 1; i < tokens.length; i++) {
             _burn(tokens[i]);
-            newValues[tokens[i]] = "";
+            newValues[tokens[i]].phase = _phase;
+            newValues[tokens[i]].value = "";
             baseColors[tokens[i]] = 0;
             emit MetadataUpdate(tokens[i]);
         }
-
-        newValues[tokens[0]] = newValue;
+        newValues[tokens[0]].phase = _phase;
+        newValues[tokens[0]].value = newValue;
         baseColors[tokens[0]] = utils.randomRange(tokens[0], 1, 4);
         emit MetadataUpdate(tokens[0]);
     }
@@ -67,73 +73,15 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     function getValue(uint256 tokenId) public view returns (string memory) {
         if (!_exists(tokenId)) {
             return "";
-        } else if (!utils.compare(newValues[tokenId], "")) {
-            return newValues[tokenId];
+        } else if (!utils.compare(newValues[tokenId].value, "")) {
+            return newValues[tokenId].value;
         } else {
             return utils.initValue(tokenId, currentPhase);
         }
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override(ERC721A, IERC721A)
-        returns (string memory)
-    {
-        bool burned;
-        string memory value;
-
-        if (!_exists(tokenId)) {
-            value = "";
-            burned = true;
-        } else if (!utils.compare(newValues[tokenId], "")) {
-            value = newValues[tokenId];
-            burned = false;
-        } else {
-            value = utils.initValue(tokenId, currentPhase);
-            burned = false;
-        }
-
-        return getMetadata(tokenId, value, baseColors[tokenId], burned);
-    }
-
-    function setCurrentPhase(uint256 _currentPhase) public onlyOwner {
-        currentPhase = _currentPhase;
-        currentPhaseStart = block.timestamp;
-        phaseEndTime = block.timestamp + mintDuration;
-    }
-
-    function setPrice(uint256 _price) public onlyOwner {
-        price = _price;
-    }
-
     function mintCount() public view returns (uint256) {
         return _totalMinted();
-    }
-
-    function _startTokenId() internal view virtual override returns (uint256) {
-        return 1;
-    }
-
-    function toggleCombinable() public onlyOwner {
-        isCombinable = !isCombinable;
-    }
-
-    function withdraw() external onlyOwner {
-        require(payable(msg.sender).send(address(this).balance));
-    }
-
-    function startNextPhase() internal {
-        uint256 elapsed = block.timestamp - currentPhaseStart;
-        if (elapsed >= mintPhaseDuration) {
-            currentPhase++;
-            if (currentPhase > 4) {
-                return;
-            }
-            currentPhaseStart = block.timestamp;
-            phaseEndTime = block.timestamp + mintDuration;
-        }
     }
 
     function getBaseColorName(uint256 index)
@@ -228,5 +176,71 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         }
 
         return string(abi.encodePacked(svg, styles, "</svg>"));
+    }
+
+    function startNextPhase() internal {
+        uint256 elapsed = block.timestamp - currentPhaseStart;
+        if (elapsed >= mintPhaseDuration) {
+            currentPhase++;
+            if (currentPhase > 4) {
+                return;
+            }
+            currentPhaseStart = block.timestamp;
+            phaseEndTime = block.timestamp + mintDuration;
+        }
+    }
+
+    function setPrice(uint256 _price) public onlyOwner {
+        price = _price;
+    }
+
+    function setCurrentPhase(uint256 _currentPhase) public onlyOwner {
+        currentPhase = _currentPhase;
+        currentPhaseStart = block.timestamp;
+        phaseEndTime = block.timestamp + mintDuration;
+    }
+
+    function setMintDuration(uint256 _mintDuration) public onlyOwner {
+        mintDuration = _mintDuration;
+    }
+
+    function setMintPhaseDuration(uint256 _mintPhaseDuration) public onlyOwner {
+        mintPhaseDuration = _mintPhaseDuration;
+    }
+
+    function toggleCombinable() public onlyOwner {
+        isCombinable = !isCombinable;
+    }
+
+    function _startTokenId() internal view virtual override returns (uint256) {
+        return 1;
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override(ERC721A, IERC721A)
+        returns (string memory)
+    {
+        bool burned;
+        string memory value;
+
+        if (!_exists(tokenId)) {
+            value = "";
+            burned = true;
+        } else if (!utils.compare(newValues[tokenId].value, "")) {
+            value = newValues[tokenId].value;
+            burned = false;
+        } else {
+            value = utils.initValue(tokenId, currentPhase);
+            burned = false;
+        }
+
+        return getMetadata(tokenId, value, baseColors[tokenId], burned);
+    }
+
+    function withdraw() external onlyOwner {
+        require(payable(msg.sender).send(address(this).balance));
     }
 }
