@@ -70,6 +70,30 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         emit MetadataUpdate(tokens[0]);
     }
 
+    function matchStr(uint256[] memory tokens, uint256 _phase) public {
+        require(isCombinable, "combining not active");
+        string memory newValue = "";
+        for (uint256 i = 0; i < tokens.length; i++) {
+            require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
+            newValue = string.concat(newValue, ' ' ,getValue(tokens[i]));
+        }
+        // if (bytes(newValue).length > 4) {
+        //     revert("value no more than 4 characters");
+        // }
+
+        for (uint256 i = 1; i < tokens.length; i++) {
+            _burn(tokens[i]);
+            newValues[tokens[i]].phase = _phase;
+            newValues[tokens[i]].value = "";
+            baseColors[tokens[i]] = 0;
+            emit MetadataUpdate(tokens[i]);
+        }
+        newValues[tokens[0]].phase = _phase;
+        newValues[tokens[0]].value = newValue;
+        baseColors[tokens[0]] = utils.randomRange(tokens[0], 1, 4);
+        emit MetadataUpdate(tokens[0]);
+    }
+
     function getValue(uint256 tokenId) public view returns (string memory) {
         if (!_exists(tokenId)) {
             return "";
@@ -160,7 +184,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
                 utils.uint2str(rgbs[1]),
                 ",",
                 utils.uint2str(rgbs[2]),
-                ")}#bg{fill:#0C0C0C}text{font-size: 100px;font-family: sans-serif;}</style>"
+                ")}#bg{fill:#0C0C0C}text{font-size: 70px;font-family: sans-serif;}</style>"
             )
         );
 
