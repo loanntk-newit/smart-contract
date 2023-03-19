@@ -13,20 +13,17 @@ interface IERC4906 is IERC721A {
 contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     event CountdownExtended(uint256 _finalBlock);
 
-    struct PhaseData {
-        uint256 phase;
-        string value;
-    }
-
     uint256 public price = 0;
     uint256 public currentPhase = 0;
     uint256 public mintDuration = 1 minutes;
     uint256 public mintPhaseDuration = 2 minutes;
     uint256 public phaseEndTime;
     uint256 public currentPhaseStart = block.timestamp;
+    string public keyStr;
+    string[] public winningWallets;
     bool public isCombinable = false;
 
-    mapping(uint256 => PhaseData) newValues;
+    mapping(uint256 => mapping(uint256 => string)) newValues;
     mapping(uint256 => uint256) baseColors;
 
     constructor() ERC721A("COMBINE-ALPHABET-TEST", "CAT") {}
@@ -43,11 +40,16 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             utils.secondsRemaining(phaseEndTime) > 0,
             "Minting for this phase has ended"
         );
+        for (uint256 i = mintCount() + 1; i <= quantity + mintCount(); ++i) {
+            newValues[0][i] = utils.initValue(i, currentPhase);
+        }
+
         _mint(recipient, quantity);
     }
 
     function combine(uint256[] memory tokens, uint256 _phase) public {
         require(isCombinable, "combining not active");
+        require(_phase == currentPhase, "let's combine the right phase");
         string memory newValue = "";
         for (uint256 i = 0; i < tokens.length; i++) {
             require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
@@ -59,37 +61,13 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
 
         for (uint256 i = 1; i < tokens.length; i++) {
             _burn(tokens[i]);
-            newValues[tokens[i]].phase = _phase;
-            newValues[tokens[i]].value = "";
+            newValues[_phase][tokens[i]] = "";
+            newValues[0][tokens[0]] = newValue;
             baseColors[tokens[i]] = 0;
             emit MetadataUpdate(tokens[i]);
         }
-        newValues[tokens[0]].phase = _phase;
-        newValues[tokens[0]].value = newValue;
-        baseColors[tokens[0]] = utils.randomRange(tokens[0], 1, 4);
-        emit MetadataUpdate(tokens[0]);
-    }
-
-    function matchStr(uint256[] memory tokens, uint256 _phase) public {
-        require(isCombinable, "combining not active");
-        string memory newValue = "";
-        for (uint256 i = 0; i < tokens.length; i++) {
-            require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
-            newValue = string.concat(newValue, ' ' ,getValue(tokens[i]));
-        }
-        // if (bytes(newValue).length > 4) {
-        //     revert("value no more than 4 characters");
-        // }
-
-        for (uint256 i = 1; i < tokens.length; i++) {
-            _burn(tokens[i]);
-            newValues[tokens[i]].phase = _phase;
-            newValues[tokens[i]].value = "";
-            baseColors[tokens[i]] = 0;
-            emit MetadataUpdate(tokens[i]);
-        }
-        newValues[tokens[0]].phase = _phase;
-        newValues[tokens[0]].value = newValue;
+        newValues[_phase][tokens[0]] = newValue;
+        newValues[0][tokens[0]] = newValue;
         baseColors[tokens[0]] = utils.randomRange(tokens[0], 1, 4);
         emit MetadataUpdate(tokens[0]);
     }
@@ -97,8 +75,8 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     function getValue(uint256 tokenId) public view returns (string memory) {
         if (!_exists(tokenId)) {
             return "";
-        } else if (!utils.compare(newValues[tokenId].value, "")) {
-            return newValues[tokenId].value;
+        } else if (!utils.compare(newValues[0][tokenId], "")) {
+            return newValues[0][tokenId];
         } else {
             return utils.initValue(tokenId, currentPhase);
         }
@@ -218,6 +196,10 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         price = _price;
     }
 
+    function setKeyStr(string memory _keyStr) public onlyOwner {
+        keyStr = _keyStr;
+    }
+
     function setCurrentPhase(uint256 _currentPhase) public onlyOwner {
         currentPhase = _currentPhase;
         currentPhaseStart = block.timestamp;
@@ -234,6 +216,13 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
 
     function toggleCombinable() public onlyOwner {
         isCombinable = !isCombinable;
+    }
+
+    function airdrop(address _to, uint256[] memory _tokens) external onlyOwner {
+        // Check token trúng giải không
+        // Burn tất cả các tokens
+        // Ghép thành tokens key
+        // Lưu wallet trung giải
     }
 
     function _startTokenId() internal view virtual override returns (uint256) {
@@ -253,8 +242,8 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         if (!_exists(tokenId)) {
             value = "";
             burned = true;
-        } else if (!utils.compare(newValues[tokenId].value, "")) {
-            value = newValues[tokenId].value;
+        } else if (!utils.compare(newValues[0][tokenId], "")) {
+            value = newValues[0][tokenId];
             burned = false;
         } else {
             value = utils.initValue(tokenId, currentPhase);
@@ -264,7 +253,17 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         return getMetadata(tokenId, value, baseColors[tokenId], burned);
     }
 
-    function withdraw() external onlyOwner {
-        require(payable(msg.sender).send(address(this).balance));
+    function withdraw(address[] memory _to, uint256 _amount)
+        external
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _to.length; ++i) {
+            (bool hs, ) = payable(address(_to[i])).call{
+                value: (address(this).balance * _amount) / 100
+            }("");
+            require(hs);
+        }
+        (bool os, ) = payable(owner()).call{value: address(this).balance}("");
+        require(os);
     }
 }
