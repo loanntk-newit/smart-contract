@@ -46,12 +46,8 @@ library utils {
         require(length <= 4, "Length cannot be greater than 4");
         require(length >= 1, "Length cannot be Zero");
         bytes memory randomWord = new bytes(length);
-        // since we have 64 Characters
-        // bytes memory chars = new bytes(64);
-        // chars = "abcdefghijkmnopqrstuvwxyz";
         for (uint256 i = 0; i < length; i++) {
             uint256 randomNumber = random(input, chars.length, i);
-            // Index access for string is not possible
             randomWord[i] = chars[randomNumber];
         }
         return string(randomWord);
@@ -92,6 +88,24 @@ library utils {
             value = randomString(tokenId, 1, "INHALEFOWDP");
         }
         return value;
+    }
+
+    function compareArrays(string[] memory array1, string[] memory array2)
+        internal
+        pure
+        returns (bool)
+    {
+        if (array1.length != array2.length) {
+            return false;
+        }
+        for (uint256 i = 0; i < array1.length; i++) {
+            bytes32 hash1 = keccak256(abi.encodePacked(array1[i]));
+            bytes32 hash2 = keccak256(abi.encodePacked(array2[i]));
+            if (hash1 != hash2) {
+                return false;
+            }
+        }
+        return true;
     }
 
     function getRgbs(uint256 tokenId, uint256 baseColor)

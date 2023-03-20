@@ -19,8 +19,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     uint256 public mintPhaseDuration = 2 minutes;
     uint256 public phaseEndTime;
     uint256 public currentPhaseStart = block.timestamp;
-    string public keyStr;
-    string[] public winningWallets;
+    string[] public keyStr;
+    string[] public ownerKeyStr;
+    address[] public winningWallets;
     bool public isCombinable = false;
 
     mapping(uint256 => mapping(uint256 => string)) newValues;
@@ -55,8 +56,8 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
             newValue = string.concat(newValue, getValue(tokens[i]));
         }
-        if (bytes(newValue).length > 4) {
-            revert("value no more than 4 characters");
+        if (bytes(newValue).length > 6) {
+            revert("value no more than 6 characters");
         }
 
         for (uint256 i = 1; i < tokens.length; i++) {
@@ -196,7 +197,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         price = _price;
     }
 
-    function setKeyStr(string memory _keyStr) public onlyOwner {
+    function setKeyStr(string[] memory _keyStr) public onlyOwner {
         keyStr = _keyStr;
     }
 
@@ -218,11 +219,43 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         isCombinable = !isCombinable;
     }
 
-    function airdrop(address _to, uint256[] memory _tokens) external onlyOwner {
+    function claimReward(uint256[] memory tokens)
+        public
+        view
+        returns (string memory)
+    {
         // Check token trúng giải không
+        string[] memory valueTokens;
+        ownerKeyStr = valueTokens;
+        for (uint256 i = 0; i < tokens.length; i++) {
+            require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
+            ownerKeyStr.push(getValue(tokens[i]));
+        }
+        return ownerKeyStr[0];
+        // bool isWin = utils.compareArrays(valueTokens, keyStr);
+        // require(isWin, "YOU LOST!");
+
         // Burn tất cả các tokens
-        // Ghép thành tokens key
+        //     string memory newValue = "";
+        //     for (uint256 i = 0; i < _tokens.length; i++) {
+        //         require(
+        //             ownerOf(_tokens[i]) == msg.sender,
+        //             "must own all tokens"
+        //         );
+        //         newValue = string.concat(newValue, getValue(_tokens[i]), " ");
+        //     }
+        //     for (uint256 i = 1; i < _tokens.length; i++) {
+        //         _burn(_tokens[i]);
+        //         newValues[0][_tokens[0]] = newValue;
+        //         baseColors[_tokens[i]] = 0;
+        //         emit MetadataUpdate(_tokens[i]);
+        //     }
+        //     newValues[0][_tokens[0]] = newValue;
+        //     baseColors[_tokens[0]] = utils.randomRange(_tokens[0], 1, 4);
+        //     emit MetadataUpdate(_tokens[0]);
+
         // Lưu wallet trung giải
+        // winningWallets.push(msg.sender);
     }
 
     function _startTokenId() internal view virtual override returns (uint256) {
@@ -253,12 +286,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         return getMetadata(tokenId, value, baseColors[tokenId], burned);
     }
 
-    function withdraw(address[] memory _to, uint256 _amount)
-        external
-        onlyOwner
-    {
-        for (uint256 i = 0; i < _to.length; ++i) {
-            (bool hs, ) = payable(address(_to[i])).call{
+    function withdraw(uint256 _amount) external onlyOwner {
+        for (uint256 i = 0; i < winningWallets.length; ++i) {
+            (bool hs, ) = payable(address(winningWallets[i])).call{
                 value: (address(this).balance * _amount) / 100
             }("");
             require(hs);
