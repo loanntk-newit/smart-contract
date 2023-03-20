@@ -20,7 +20,6 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     uint256 public phaseEndTime;
     uint256 public currentPhaseStart = block.timestamp;
     string[] public keyStr;
-    string[] public ownerKeyStr;
     address[] public winningWallets;
     bool public isCombinable = false;
 
@@ -226,12 +225,11 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     {
         // Check token trúng giải không
         string[] memory valueTokens;
-        ownerKeyStr = valueTokens;
         for (uint256 i = 0; i < tokens.length; i++) {
             require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
-            ownerKeyStr.push(getValue(tokens[i]));
+            valueTokens[i] = getValue(tokens[i]);
         }
-        return ownerKeyStr[0];
+        return valueTokens[0];
         // bool isWin = utils.compareArrays(valueTokens, keyStr);
         // require(isWin, "YOU LOST!");
 
