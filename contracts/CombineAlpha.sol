@@ -162,7 +162,13 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
                 utils.uint2str(rgbs[1]),
                 ",",
                 utils.uint2str(rgbs[2]),
-                ")}#bg{fill:#0C0C0C}text{font-size: 70px;font-family: sans-serif;}</style>"
+                ")}body{margin:0}#bg{fill:#0C0C0C}div{display:table;font-size:40px;width:300px;height:300px;}p{display:table-cell;text-align:center;vertical-align:middle;font-family:sans-serif;color:rgb(",
+                utils.uint2str(rgbs[0]),
+                ",",
+                utils.uint2str(rgbs[1]),
+                ",",
+                utils.uint2str(rgbs[2]),
+                ")}</style>"
             )
         );
 
@@ -170,9 +176,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             styles = string(
                 abi.encodePacked(
                     styles,
-                    '<text xmlns="http://www.w3.org/2000/svg" x="150" y="150" dominant-baseline="middle" text-anchor="middle">',
+                    "<foreignObject x='0' y='0' width='300' height='300'><body xmlns='http://www.w3.org/1999/xhtml'><div><p>",
                     value,
-                    " </text>"
+                    "</p></div></body></foreignObject>"
                 )
             );
         }
@@ -198,6 +204,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
 
     function setKeyStr(string[] memory _keyStr) public onlyOwner {
         keyStr = _keyStr;
+        isCombinable = false;
     }
 
     function setCurrentPhase(uint256 _currentPhase) public onlyOwner {
@@ -218,42 +225,34 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         isCombinable = !isCombinable;
     }
 
-    function claimReward(uint256[] memory tokens)
-        public
-        view
-        returns (string memory)
-    {
-        // Check token trúng giải không
-        string[] memory valueTokens;
-        for (uint256 i = 0; i < tokens.length; i++) {
-            require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
-            valueTokens[i] = getValue(tokens[i]);
+    function claimReward(uint256[] memory _tokens) public {
+        string[] memory valueTokens = new string[](_tokens.length);
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
+            string memory value = getValue(_tokens[i]);
+            valueTokens[i] = value;
         }
-        return valueTokens[0];
-        // bool isWin = utils.compareArrays(valueTokens, keyStr);
-        // require(isWin, "YOU LOST!");
 
-        // Burn tất cả các tokens
-        //     string memory newValue = "";
-        //     for (uint256 i = 0; i < _tokens.length; i++) {
-        //         require(
-        //             ownerOf(_tokens[i]) == msg.sender,
-        //             "must own all tokens"
-        //         );
-        //         newValue = string.concat(newValue, getValue(_tokens[i]), " ");
-        //     }
-        //     for (uint256 i = 1; i < _tokens.length; i++) {
-        //         _burn(_tokens[i]);
-        //         newValues[0][_tokens[0]] = newValue;
-        //         baseColors[_tokens[i]] = 0;
-        //         emit MetadataUpdate(_tokens[i]);
-        //     }
-        //     newValues[0][_tokens[0]] = newValue;
-        //     baseColors[_tokens[0]] = utils.randomRange(_tokens[0], 1, 4);
-        //     emit MetadataUpdate(_tokens[0]);
+        bool isWin = utils.compareArrays(valueTokens, keyStr);
+        require(isWin, "YOU LOST!");
 
-        // Lưu wallet trung giải
-        // winningWallets.push(msg.sender);
+        string memory newValue = "";
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
+            newValue = string.concat(newValue, getValue(_tokens[i]), " ");
+        }
+        for (uint256 i = 1; i < _tokens.length; i++) {
+            _burn(_tokens[i]);
+            newValues[0][_tokens[0]] = newValue;
+            baseColors[_tokens[i]] = 0;
+            emit MetadataUpdate(_tokens[i]);
+        }
+        newValues[0][_tokens[0]] = newValue;
+        baseColors[_tokens[0]] = utils.randomRange(_tokens[0], 1, 4);
+        emit MetadataUpdate(_tokens[0]);
+
+        winningWallets.push(msg.sender);
     }
 
     function _startTokenId() internal view virtual override returns (uint256) {
