@@ -159,7 +159,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             abi.encodePacked(
                 "@import url('https://fonts.googleapis.com/css2?family=Beth+Ellen');",
                 "body{margin:0}#bg{fill:#0C0C0C}div{display:table;width:300px;height:300px;}",
-                "p{display:table-cell;text-align:center;vertical-align:middle;font-family:monospace;font-size:2.5vw;color:rgb(",
+                "p{display:table-cell;text-align:center;vertical-align:middle;font-family:monospace;font-size:39px;word-spacing:-16px;color:rgb(",
                 utils.uint2str(rgbs[0]),
                 ",",
                 utils.uint2str(rgbs[1]),
