@@ -79,13 +79,13 @@ library utils {
         returns (string memory value)
     {
         if (phase == 1) {
-            value = randomString(tokenId, 1, "ENDIROGLPHW");
+            value = randomString(tokenId, 1, "deghilnoprw");
         } else if (phase == 2) {
-            value = randomString(tokenId, 1, "FLEKITWORDN");
+            value = randomString(tokenId, 1, "defiklnortw");
         } else if (phase == 3) {
-            value = randomString(tokenId, 1, "WORTHMEALPS");
+            value = randomString(tokenId, 1, "aehlmoprstw");
         } else if (phase == 4) {
-            value = randomString(tokenId, 1, "INHALEFOWDP");
+            value = randomString(tokenId, 1, "adefhilnopw");
         }
         return value;
     }

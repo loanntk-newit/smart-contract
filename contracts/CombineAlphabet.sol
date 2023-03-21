@@ -52,6 +52,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         require(_phase == currentPhase, "let's combine the right phase");
         string memory newValue = "";
         for (uint256 i = 0; i < tokens.length; i++) {
+            require(_exists(tokens[i]), "has token burned");
             require(ownerOf(tokens[i]) == msg.sender, "must own all tokens");
             newValue = string.concat(newValue, getValue(tokens[i]));
         }
@@ -156,13 +157,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
 
         string memory styles = string(
             abi.encodePacked(
-                "*{fill:rgb(",
-                utils.uint2str(rgbs[0]),
-                ",",
-                utils.uint2str(rgbs[1]),
-                ",",
-                utils.uint2str(rgbs[2]),
-                ")}body{margin:0}#bg{fill:#0C0C0C}div{display:table;font-size:40px;width:300px;height:300px;}p{display:table-cell;text-align:center;vertical-align:middle;font-family:sans-serif;color:rgb(",
+                "@import url('https://fonts.googleapis.com/css2?family=Beth+Ellen');",
+                "body{margin:0}#bg{fill:#0C0C0C}div{display:table;width:300px;height:300px;}",
+                "p{display:table-cell;text-align:center;vertical-align:middle;font-family:monospace;font-size:2.5vw;color:rgb(",
                 utils.uint2str(rgbs[0]),
                 ",",
                 utils.uint2str(rgbs[1]),
@@ -172,7 +169,14 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             )
         );
 
-        if (utils.compare(value, "")) {} else {
+        if (utils.compare(value, "")) {
+            styles = string(
+                abi.encodePacked(
+                    styles,
+                    "<g transform='matrix(0.4,0,0,0.4,50,50)'><path d='M295.617 0c-106.104 61.135-93.353 233.382-93.353 233.382s-46.676-15.559-46.676-85.573C99.9 180.1 62.235 242.166 62.235 311.176c0 103.115 83.591 186.706 186.706 186.706s186.706-83.591 186.706-186.706C435.646 159.478 295.617 128.36 295.617 0zm-30.276 433.549c-37.518 9.354-75.517-13.477-84.873-50.997-9.354-37.518 13.477-75.519 50.997-84.873 90.58-22.584 101.932-73.521 101.932-73.521s45.169 181.16-68.056 209.391z' fill='#a3a3a3' data-original='#000000'/></g>"
+                )
+            );
+        } else {
             styles = string(
                 abi.encodePacked(
                     styles,
