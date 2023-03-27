@@ -23,25 +23,49 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     address[] public winningWallets;
     bool public isCombinable = false;
 
+    mapping(uint256 => bytes) public phaseValues;
     mapping(uint256 => mapping(uint256 => string)) newValues;
-    mapping(uint256 => uint256) baseColors;
 
     constructor() ERC721A("COMBINE-ALPHABET-TEST", "CAT") {}
 
-    function mint(uint256 quantity) public payable {
+    function mint(uint256 quantity, string memory value) public payable {
         require(msg.value >= quantity * price, "not enough eth");
-        handleMint(msg.sender, quantity);
+        uint256 count = 0;
+        for (uint256 i = 0; i < phaseValues[currentPhase].length; ++i) {
+            if (value == (phaseValues[currentPhase])[i]) {
+                count++;
+            }
+        }
+        require(count > 0, "input doesn't math");
+        handleMint(msg.sender, quantity, value, false);
     }
 
-    function handleMint(address recipient, uint256 quantity) internal {
+    function mintPack() public payable {
+        uint256 quantity = phaseValues[currentPhase].length;
+        require(msg.value >= quantity * price, "not enough eth");
+        handleMint(msg.sender, quantity, "", true);
+    }
+
+    function handleMint(
+        address recipient,
+        uint256 quantity,
+        string memory value,
+        bool _mintPack
+    ) internal {
         require(currentPhase > 0, "Mint is closed");
         startNextPhase();
         require(
             utils.secondsRemaining(phaseEndTime) > 0,
             "Minting for this phase has ended"
         );
-        for (uint256 i = mintCount() + 1; i <= quantity + mintCount(); ++i) {
-            newValues[0][i] = utils.initValue(i, currentPhase);
+        if (_mintPack) {} else {
+            for (
+                uint256 i = mintCount() + 1;
+                i <= quantity + mintCount();
+                ++i
+            ) {
+                newValues[0][i] = value;
+            }
         }
 
         _mint(recipient, quantity);
@@ -64,12 +88,10 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             _burn(tokens[i]);
             newValues[_phase][tokens[i]] = "";
             newValues[0][tokens[0]] = newValue;
-            baseColors[tokens[i]] = 0;
             emit MetadataUpdate(tokens[i]);
         }
         newValues[_phase][tokens[0]] = newValue;
         newValues[0][tokens[0]] = newValue;
-        baseColors[tokens[0]] = utils.randomRange(tokens[0], 1, 4);
         emit MetadataUpdate(tokens[0]);
     }
 
@@ -79,7 +101,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         } else if (!utils.compare(newValues[0][tokenId], "")) {
             return newValues[0][tokenId];
         } else {
-            return utils.initValue(tokenId, currentPhase);
+            return utils.initValue(tokenId, phaseValues[currentPhase]);
         }
     }
 
@@ -87,54 +109,57 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         return _totalMinted();
     }
 
-    function getBaseColorName(uint256 index)
-        internal
-        pure
-        returns (string memory)
-    {
-        string[4] memory baseColorNames = ["White", "Red", "Green", "Blue"];
-        return baseColorNames[index];
-    }
-
     function getMetadata(
         uint256 tokenId,
         string memory value,
-        uint256 baseColor,
+        bool combined,
         bool burned
     ) internal view returns (string memory) {
-        uint256[3] memory rgbs = utils.getRgbs(tokenId, baseColor);
+        string[4] memory baseColorNames = ["White", "Red", "Green", "Blue"];
         string memory json;
 
         if (burned) {
             json = string(
                 abi.encodePacked(
-                    '{"name": "COMBINE_ALPHABET ',
+                    '{"name": "BG_BLACK ',
                     utils.uint2str(tokenId),
-                    ' [BURNED]", "description": "Alphabet are art, and we are artists.", "attributes":[{"trait_type": "Burned", "value": "Yes"}], "image": "data:image/svg+xml;base64,',
-                    Base64.encode(bytes(renderSvg(value, rgbs))),
+                    ' [BURNED]", "description": "BG_BLACK Description.", "attributes":[{"trait_type": "Burned", "value": "Yes"}], "image": "data:image/svg+xml;base64,',
+                    Base64.encode(bytes(renderSvg(value, baseColorNames[0]))),
                     '"}'
                 )
             );
         } else {
+            string memory path = string(
+                abi.encodePacked(
+                    "{'trait_type': 'Alphabet', 'value': '",
+                    value,
+                    "'}, "
+                )
+            );
+            if (combined) {
+                path = string(
+                    abi.encodePacked(
+                        "{'trait_type': 'Combine', 'value': '",
+                        value,
+                        "'}, "
+                    )
+                );
+            }
             json = string(
                 abi.encodePacked(
-                    '{"name": "COMBINE_ALPHABET ',
+                    "{'name': 'BG_BLACK ",
                     utils.uint2str(tokenId),
-                    '", "description": "Alphabet are art, and we are artists.", "attributes":[{"trait_type": "Alphabet", "value": "',
-                    value,
-                    '"},{"trait_type": "Mint Phase", "value": ',
+                    "', 'description': 'BG_BLACK Description.', 'attributes':[",
+                    path,
+                    "{'trait_type': 'Mint Phase', 'value': ",
                     utils.uint2str(currentPhase),
-                    '},{"trait_type": "Burned", "value": "No"},{"trait_type": "Base Color", "value": "',
-                    getBaseColorName(baseColor),
-                    '"},{"trait_type": "Color", "value": "RGB(',
-                    utils.uint2str(rgbs[0]),
-                    ",",
-                    utils.uint2str(rgbs[1]),
-                    ",",
-                    utils.uint2str(rgbs[2]),
-                    ')"}], "image": "data:image/svg+xml;base64,',
-                    Base64.encode(bytes(renderSvg(value, rgbs))),
-                    '"}'
+                    "}, {'trait_type': 'Burned', 'value': 'No'}, {'trait_type': 'Color', 'value': '",
+                    baseColorNames[currentPhase],
+                    "'}], 'image': 'data:image/svg+xml;base64,",
+                    Base64.encode(
+                        bytes(renderSvg(value, baseColorNames[currentPhase]))
+                    ),
+                    "'}"
                 )
             );
         }
@@ -148,7 +173,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             );
     }
 
-    function renderSvg(string memory value, uint256[3] memory rgbs)
+    function renderSvg(string memory value, string memory color)
         internal
         pure
         returns (string memory svg)
@@ -159,13 +184,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             abi.encodePacked(
                 "@import url('https://fonts.googleapis.com/css2?family=Beth+Ellen');",
                 "body{margin:0}#bg{fill:#0C0C0C}div{display:table;width:300px;height:300px;}",
-                "p{display:table-cell;text-align:center;vertical-align:middle;font-family:monospace;font-size:39px;word-spacing:-16px;color:rgb(",
-                utils.uint2str(rgbs[0]),
-                ",",
-                utils.uint2str(rgbs[1]),
-                ",",
-                utils.uint2str(rgbs[2]),
-                ")}</style>"
+                "p{display:table-cell;text-align:center;vertical-align:middle;font-family:monospace;font-size:39px;word-spacing:-16px;color:",
+                color,
+                "}</style>"
             )
         );
 
@@ -225,6 +246,14 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         mintPhaseDuration = _mintPhaseDuration;
     }
 
+    // https://www.devoven.com/string-to-bytes32
+    function setPhaseValues(uint256 _phase, bytes memory _values)
+        public
+        onlyOwner
+    {
+        phaseValues[_phase] = _values;
+    }
+
     function toggleCombinable() public onlyOwner {
         isCombinable = !isCombinable;
     }
@@ -249,11 +278,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         for (uint256 i = 1; i < _tokens.length; i++) {
             _burn(_tokens[i]);
             newValues[0][_tokens[0]] = newValue;
-            baseColors[_tokens[i]] = 0;
             emit MetadataUpdate(_tokens[i]);
         }
         newValues[0][_tokens[0]] = newValue;
-        baseColors[_tokens[0]] = utils.randomRange(_tokens[0], 1, 4);
         emit MetadataUpdate(_tokens[0]);
 
         winningWallets.push(msg.sender);
@@ -271,20 +298,24 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         returns (string memory)
     {
         bool burned;
+        bool combined;
         string memory value;
 
         if (!_exists(tokenId)) {
             value = "";
             burned = true;
+            combined = false;
         } else if (!utils.compare(newValues[0][tokenId], "")) {
             value = newValues[0][tokenId];
             burned = false;
+            combined = true;
         } else {
-            value = utils.initValue(tokenId, currentPhase);
+            value = utils.initValue(tokenId, phaseValues[currentPhase]);
             burned = false;
+            combined = false;
         }
 
-        return getMetadata(tokenId, value, baseColors[tokenId], burned);
+        return getMetadata(tokenId, value, combined, burned);
     }
 
     function withdraw(uint256 _amount) external onlyOwner {

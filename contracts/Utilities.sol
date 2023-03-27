@@ -73,20 +73,12 @@ library utils {
             1;
     }
 
-    function initValue(uint256 tokenId, uint256 phase)
+    function initValue(uint256 tokenId, bytes memory phaseValue)
         internal
         pure
         returns (string memory value)
     {
-        if (phase == 1) {
-            value = randomString(tokenId, 1, "deghilnoprw");
-        } else if (phase == 2) {
-            value = randomString(tokenId, 1, "defiklnortw");
-        } else if (phase == 3) {
-            value = randomString(tokenId, 1, "aehlmoprstw");
-        } else if (phase == 4) {
-            value = randomString(tokenId, 1, "adefhilnopw");
-        }
+        value = randomString(tokenId, 1, phaseValue);
         return value;
     }
 
@@ -106,27 +98,6 @@ library utils {
             }
         }
         return true;
-    }
-
-    function getRgbs(uint256 tokenId, uint256 baseColor)
-        internal
-        pure
-        returns (uint256[3] memory rgbValues)
-    {
-        if (baseColor > 0) {
-            for (uint256 i = 0; i < 3; i++) {
-                if (baseColor == i + 1) {
-                    rgbValues[i] = 255;
-                } else {
-                    rgbValues[i] = randomRange(tokenId + i, 0, 256);
-                }
-            }
-        } else {
-            for (uint256 i = 0; i < 3; i++) {
-                rgbValues[i] = 255;
-            }
-        }
-        return rgbValues;
     }
 
     function secondsRemaining(uint256 end) internal view returns (uint256) {
