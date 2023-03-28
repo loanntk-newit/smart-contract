@@ -29,14 +29,12 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     constructor() ERC721A("COMBINE-ALPHABET-TEST", "CAT") {}
 
     function mint(uint256 quantity, string memory value) public payable {
+        // convert phaseValues[currentPhase] to string
+        require(
+            utils.isCharInString("asdf", value),
+            "value not in keys this phase"
+        );
         require(msg.value >= quantity * price, "not enough eth");
-        uint256 count = 0;
-        for (uint256 i = 0; i < phaseValues[currentPhase].length; ++i) {
-            if (value == (phaseValues[currentPhase])[i]) {
-                count++;
-            }
-        }
-        require(count > 0, "input doesn't math");
         handleMint(msg.sender, quantity, value, false);
     }
 
@@ -58,7 +56,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             utils.secondsRemaining(phaseEndTime) > 0,
             "Minting for this phase has ended"
         );
-        if (_mintPack) {} else {
+        if (_mintPack) {
+            // For each char in phasesValue
+        } else {
             for (
                 uint256 i = mintCount() + 1;
                 i <= quantity + mintCount();
@@ -308,7 +308,11 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         } else if (!utils.compare(newValues[0][tokenId], "")) {
             value = newValues[0][tokenId];
             burned = false;
-            combined = true;
+            if (bytes(value).length > 1) {
+                combined = true;
+            } else {
+                combined = false;
+            }
         } else {
             value = utils.initValue(tokenId, phaseValues[currentPhase]);
             burned = false;
