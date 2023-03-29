@@ -38,50 +38,6 @@ library utils {
             keccak256(abi.encodePacked(str2));
     }
 
-    function randomString(
-        uint256 input,
-        uint256 length,
-        bytes memory chars
-    ) internal pure returns (string memory) {
-        require(length <= 4, "Length cannot be greater than 4");
-        require(length >= 1, "Length cannot be Zero");
-        bytes memory randomWord = new bytes(length);
-        for (uint256 i = 0; i < length; i++) {
-            uint256 randomNumber = random(input, chars.length, i);
-            randomWord[i] = chars[randomNumber];
-        }
-        return string(randomWord);
-    }
-
-    function random(
-        uint256 input,
-        uint256 number,
-        uint256 counter
-    ) internal pure returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(input, counter))) % number;
-    }
-
-    function randomRange(
-        uint256 input,
-        uint256 min,
-        uint256 max
-    ) internal pure returns (uint256) {
-        uint256 randRange = max - min;
-        return
-            max -
-            (uint256(keccak256(abi.encodePacked(input + 2023))) % randRange) -
-            1;
-    }
-
-    function initValue(uint256 tokenId, bytes memory phaseValue)
-        internal
-        pure
-        returns (string memory value)
-    {
-        value = randomString(tokenId, 1, phaseValue);
-        return value;
-    }
-
     function compareArrays(string[] memory array1, string[] memory array2)
         internal
         pure
@@ -98,6 +54,22 @@ library utils {
             }
         }
         return true;
+    }
+
+    function isCharInString(string memory c, string memory s)
+        internal
+        pure
+        returns (bool)
+    {
+        bytes memory bStr = bytes(s);
+        bytes1 bChar = bytes1(bytes(c));
+
+        for (uint256 i = 0; i < bStr.length; i++) {
+            if (bStr[i] == bChar) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function secondsRemaining(uint256 end) internal view returns (uint256) {

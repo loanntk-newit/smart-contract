@@ -20,17 +20,18 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     uint256 public phaseEndTime;
     uint256 public currentPhaseStart = block.timestamp;
     string[] public keyStr;
-    address[] public winningWallets;
+    address[] public winningWallets; // sua con 1 vi
     bool public isCombinable = false;
 
     mapping(uint256 => bytes) public phaseValues;
+    mapping(uint256 => string) public phaseKey;
     mapping(uint256 => mapping(uint256 => string)) newValues;
 
     constructor() ERC721A("COMBINE-ALPHABET-TEST", "CAT") {}
 
     function mint(uint256 quantity, string memory value) public payable {
         require(
-            isCharInString(value, getCurrentPhaseValue()),
+            utils.isCharInString(value, getCurrentPhaseValue()),
             string.concat("value not in ", getCurrentPhaseValue())
         );
         require(msg.value >= quantity * price, "not enough eth");
@@ -56,14 +57,16 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             "Minting for this phase has ended"
         );
         if (_mintPack) {
+            bytes memory str = bytes(getCurrentPhaseValue());
+            uint256 index = 0;
             for (
                 uint256 i = mintCount() + 1;
                 i <= quantity + mintCount();
                 ++i
             ) {
-                bytes memory str = bytes(getCurrentPhaseValue());
-                bytes1 char = str[i];
-                newValues[0][i] = utils.uint2str(uint8(char));
+                bytes1 char = bytes1(str[index]);
+                newValues[0][i] = string(abi.encodePacked(char));
+                index++;
             }
         } else {
             for (
@@ -102,38 +105,53 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         emit MetadataUpdate(tokens[0]);
     }
 
-    function getValue(uint256 tokenId) public view returns (string memory) {
-        if (!_exists(tokenId)) {
-            return "";
-        } else if (!utils.compare(newValues[0][tokenId], "")) {
-            return newValues[0][tokenId];
-        } else {
-            return utils.initValue(tokenId, phaseValues[currentPhase]);
-        }
-    }
+    // function matchStr
+    // check isCombine = false
+    // check xem da input keyStr cua phase do chua
+    // check xem co trung voi keyStr khong thi cho combine
 
-    function getCurrentPhaseValue() public view returns (string memory) {
-        return string(phaseValues[currentPhase]);
+    function claimReward(uint256[] memory _tokens) public {
+        string[] memory valueTokens = new string[](_tokens.length);
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
+            string memory value = getValue(_tokens[i]);
+            valueTokens[i] = value;
+        }
+
+        bool isWin = utils.compareArrays(valueTokens, keyStr);
+        require(isWin, "YOU LOST!");
+
+        string memory newValue = "";
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
+            newValue = string.concat(newValue, getValue(_tokens[i]), " ");
+        }
+        for (uint256 i = 1; i < _tokens.length; i++) {
+            _burn(_tokens[i]);
+            newValues[0][_tokens[0]] = newValue;
+            emit MetadataUpdate(_tokens[i]);
+        }
+        newValues[0][_tokens[0]] = newValue;
+        emit MetadataUpdate(_tokens[0]);
+
+        winningWallets.push(msg.sender);
     }
 
     function mintCount() public view returns (uint256) {
         return _totalMinted();
     }
 
-    function isCharInString(string memory c, string memory s)
-        internal
-        pure
-        returns (bool)
-    {
-        bytes memory bStr = bytes(s);
-        bytes1 bChar = bytes1(bytes(c));
-
-        for (uint256 i = 0; i < bStr.length; i++) {
-            if (bStr[i] == bChar) {
-                return true;
-            }
+    function getValue(uint256 tokenId) public view returns (string memory) {
+        if (!_exists(tokenId)) {
+            return "";
+        } else {
+            return newValues[0][tokenId];
         }
-        return false;
+    }
+
+    function getCurrentPhaseValue() public view returns (string memory) {
+        return string(phaseValues[currentPhase]);
     }
 
     function getMetadata(
@@ -280,36 +298,12 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         phaseValues[_phase] = bytes(_values);
     }
 
-    function toggleCombinable() public onlyOwner {
-        isCombinable = !isCombinable;
+    function setPhaseKey(uint256 _phase, string memory _key) public onlyOwner {
+        phaseKey[_phase] = _key;
     }
 
-    function claimReward(uint256[] memory _tokens) public {
-        string[] memory valueTokens = new string[](_tokens.length);
-
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
-            string memory value = getValue(_tokens[i]);
-            valueTokens[i] = value;
-        }
-
-        bool isWin = utils.compareArrays(valueTokens, keyStr);
-        require(isWin, "YOU LOST!");
-
-        string memory newValue = "";
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
-            newValue = string.concat(newValue, getValue(_tokens[i]), " ");
-        }
-        for (uint256 i = 1; i < _tokens.length; i++) {
-            _burn(_tokens[i]);
-            newValues[0][_tokens[0]] = newValue;
-            emit MetadataUpdate(_tokens[i]);
-        }
-        newValues[0][_tokens[0]] = newValue;
-        emit MetadataUpdate(_tokens[0]);
-
-        winningWallets.push(msg.sender);
+    function toggleCombinable() public onlyOwner {
+        isCombinable = !isCombinable;
     }
 
     function _startTokenId() internal view virtual override returns (uint256) {
@@ -331,7 +325,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             value = "";
             burned = true;
             combined = false;
-        } else if (!utils.compare(newValues[0][tokenId], "")) {
+        } else {
             value = newValues[0][tokenId];
             burned = false;
             if (bytes(value).length > 1) {
@@ -339,10 +333,6 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             } else {
                 combined = false;
             }
-        } else {
-            value = utils.initValue(tokenId, phaseValues[currentPhase]);
-            burned = false;
-            combined = false;
         }
 
         return getMetadata(tokenId, value, combined, burned);
