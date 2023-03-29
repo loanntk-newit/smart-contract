@@ -2,9 +2,11 @@
 pragma solidity ^0.8.18;
 
 library utils {
-    function uint2str(
-        uint256 _i
-    ) internal pure returns (string memory _uintAsString) {
+    function uint2str(uint256 _i)
+        internal
+        pure
+        returns (string memory _uintAsString)
+    {
         if (_i == 0) {
             return "0";
         }
@@ -26,38 +28,14 @@ library utils {
         return string(bstr);
     }
 
-    function compare(
-        string memory str1,
-        string memory str2
-    ) internal pure returns (bool) {
+    function compare(string memory str1, string memory str2)
+        internal
+        pure
+        returns (bool)
+    {
         return
             keccak256(abi.encodePacked(str1)) ==
             keccak256(abi.encodePacked(str2));
-    }
-
-    function compareArrays(
-        string[] memory array1,
-        string[] memory array2
-    ) internal pure returns (bool) {
-        if (array1.length != array2.length) {
-            return false;
-        }
-        for (uint256 i = 0; i < array1.length; i++) {
-            bytes32 hash1 = keccak256(abi.encodePacked(array1[i]));
-            bytes32 hash2 = keccak256(abi.encodePacked(array2[i]));
-            if (hash1 != hash2) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    function random(
-        uint256 input,
-        uint256 number,
-        uint256 counter
-    ) internal pure returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(input, counter))) % number;
     }
 
     function randomString(
@@ -75,27 +53,51 @@ library utils {
         return string(randomWord);
     }
 
-    function isCharInString(
-        string memory s,
-        string memory c
-    ) internal pure returns (bool) {
-        bytes memory bStr = bytes(s);
-        bytes1 bChar = bytes1(bytes(c));
-
-        for (uint256 i = 0; i < bStr.length; i++) {
-            if (bStr[i] == bChar) {
-                return true;
-            }
-        }
-        return false;
+    function random(
+        uint256 input,
+        uint256 number,
+        uint256 counter
+    ) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(input, counter))) % number;
     }
 
-    function initValue(
-        uint256 tokenId,
-        bytes memory phaseValue
-    ) internal pure returns (string memory value) {
+    function randomRange(
+        uint256 input,
+        uint256 min,
+        uint256 max
+    ) internal pure returns (uint256) {
+        uint256 randRange = max - min;
+        return
+            max -
+            (uint256(keccak256(abi.encodePacked(input + 2023))) % randRange) -
+            1;
+    }
+
+    function initValue(uint256 tokenId, bytes memory phaseValue)
+        internal
+        pure
+        returns (string memory value)
+    {
         value = randomString(tokenId, 1, phaseValue);
         return value;
+    }
+
+    function compareArrays(string[] memory array1, string[] memory array2)
+        internal
+        pure
+        returns (bool)
+    {
+        if (array1.length != array2.length) {
+            return false;
+        }
+        for (uint256 i = 0; i < array1.length; i++) {
+            bytes32 hash1 = keccak256(abi.encodePacked(array1[i]));
+            bytes32 hash2 = keccak256(abi.encodePacked(array2[i]));
+            if (hash1 != hash2) {
+                return false;
+            }
+        }
+        return true;
     }
 
     function secondsRemaining(uint256 end) internal view returns (uint256) {

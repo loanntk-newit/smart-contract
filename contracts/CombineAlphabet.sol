@@ -29,10 +29,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
     constructor() ERC721A("COMBINE-ALPHABET-TEST", "CAT") {}
 
     function mint(uint256 quantity, string memory value) public payable {
-        // convert phaseValues[currentPhase] to string
         require(
-            utils.isCharInString("asdf", value),
-            "value not in keys this phase"
+            isCharInString(value, getCurrentPhaseValue()),
+            string.concat("value not in ", getCurrentPhaseValue())
         );
         require(msg.value >= quantity * price, "not enough eth");
         handleMint(msg.sender, quantity, value, false);
@@ -57,7 +56,15 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             "Minting for this phase has ended"
         );
         if (_mintPack) {
-            // For each char in phasesValue
+            for (
+                uint256 i = mintCount() + 1;
+                i <= quantity + mintCount();
+                ++i
+            ) {
+                bytes memory str = bytes(getCurrentPhaseValue());
+                bytes1 char = str[i];
+                newValues[0][i] = utils.uint2str(uint8(char));
+            }
         } else {
             for (
                 uint256 i = mintCount() + 1;
@@ -105,8 +112,28 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         }
     }
 
+    function getCurrentPhaseValue() public view returns (string memory) {
+        return string(phaseValues[currentPhase]);
+    }
+
     function mintCount() public view returns (uint256) {
         return _totalMinted();
+    }
+
+    function isCharInString(string memory c, string memory s)
+        internal
+        pure
+        returns (bool)
+    {
+        bytes memory bStr = bytes(s);
+        bytes1 bChar = bytes1(bytes(c));
+
+        for (uint256 i = 0; i < bStr.length; i++) {
+            if (bStr[i] == bChar) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function getMetadata(
@@ -151,9 +178,9 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
                     utils.uint2str(tokenId),
                     "', 'description': 'BG_BLACK Description.', 'attributes':[",
                     path,
-                    "{'trait_type': 'Mint Phase', 'value': ",
+                    "{'trait_type': 'Mint Phase', 'value': '",
                     utils.uint2str(currentPhase),
-                    "}, {'trait_type': 'Burned', 'value': 'No'}, {'trait_type': 'Color', 'value': '",
+                    "'}, {'trait_type': 'Burned', 'value': 'No'}, {'trait_type': 'Color', 'value': '",
                     baseColorNames[currentPhase],
                     "'}], 'image': 'data:image/svg+xml;base64,",
                     Base64.encode(
@@ -194,7 +221,7 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
             styles = string(
                 abi.encodePacked(
                     styles,
-                    "<g transform='matrix(0.4,0,0,0.4,50,50)'><path d='M295.617 0c-106.104 61.135-93.353 233.382-93.353 233.382s-46.676-15.559-46.676-85.573C99.9 180.1 62.235 242.166 62.235 311.176c0 103.115 83.591 186.706 186.706 186.706s186.706-83.591 186.706-186.706C435.646 159.478 295.617 128.36 295.617 0zm-30.276 433.549c-37.518 9.354-75.517-13.477-84.873-50.997-9.354-37.518 13.477-75.519 50.997-84.873 90.58-22.584 101.932-73.521 101.932-73.521s45.169 181.16-68.056 209.391z' fill='#a3a3a3' data-original='#000000'/></g>"
+                    "<g transform='matrix(0.3,0,0,0.3,80,80)'><path d='M295.617 0c-106.104 61.135-93.353 233.382-93.353 233.382s-46.676-15.559-46.676-85.573C99.9 180.1 62.235 242.166 62.235 311.176c0 103.115 83.591 186.706 186.706 186.706s186.706-83.591 186.706-186.706C435.646 159.478 295.617 128.36 295.617 0zm-30.276 433.549c-37.518 9.354-75.517-13.477-84.873-50.997-9.354-37.518 13.477-75.519 50.997-84.873 90.58-22.584 101.932-73.521 101.932-73.521s45.169 181.16-68.056 209.391z' fill='#a3a3a3' data-original='#000000'/></g>"
                 )
             );
         } else {
@@ -246,12 +273,11 @@ contract CombineAlphabet is ERC721A, Ownable, IERC4906 {
         mintPhaseDuration = _mintPhaseDuration;
     }
 
-    // https://www.devoven.com/string-to-bytes32
-    function setPhaseValues(uint256 _phase, bytes memory _values)
+    function setPhaseValues(uint256 _phase, string memory _values)
         public
         onlyOwner
     {
-        phaseValues[_phase] = _values;
+        phaseValues[_phase] = bytes(_values);
     }
 
     function toggleCombinable() public onlyOwner {
