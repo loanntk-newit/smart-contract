@@ -56,22 +56,6 @@ library utils {
         return true;
     }
 
-    function isCharInString(string memory c, string memory s)
-        internal
-        pure
-        returns (bool)
-    {
-        bytes memory bStr = bytes(s);
-        bytes1 bChar = bytes1(bytes(c));
-
-        for (uint256 i = 0; i < bStr.length; i++) {
-            if (bStr[i] == bChar) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     function secondsRemaining(uint256 end) internal view returns (uint256) {
         if (block.timestamp <= end) {
             return end - block.timestamp;
