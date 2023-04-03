@@ -38,24 +38,6 @@ library utils {
             keccak256(abi.encodePacked(str2));
     }
 
-    function compareArrays(string[] memory array1, string[] memory array2)
-        internal
-        pure
-        returns (bool)
-    {
-        if (array1.length != array2.length) {
-            return false;
-        }
-        for (uint256 i = 0; i < array1.length; i++) {
-            bytes32 hash1 = keccak256(abi.encodePacked(array1[i]));
-            bytes32 hash2 = keccak256(abi.encodePacked(array2[i]));
-            if (hash1 != hash2) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     function secondsRemaining(uint256 end) internal view returns (uint256) {
         if (block.timestamp <= end) {
             return end - block.timestamp;

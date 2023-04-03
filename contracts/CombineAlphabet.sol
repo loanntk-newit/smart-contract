@@ -20,7 +20,7 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
     uint256 public phaseEndTime;
     uint256 public currentPhaseStart = block.timestamp;
     uint256 public winningToken;
-    string[] public superKey;
+    string public superKey;
     address public winningWallets;
 
     bool public isCombinable = false;
@@ -114,16 +114,10 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
             !isCombinable,
             "cannot perform this action when combining is active"
         );
-        string[] memory valueTokens = new string[](_tokens.length);
-
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
-            string memory value = getValue(_tokens[i]);
-            valueTokens[i] = value;
-        }
 
         string memory newValue = "";
         for (uint256 i = 0; i < _tokens.length; i++) {
+            require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
             newValue = string.concat(newValue, getValue(_tokens[i]), " ");
         }
         for (uint256 i = 1; i < _tokens.length; i++) {
@@ -135,18 +129,16 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
         emit MetadataUpdate(_tokens[0]);
     }
 
-    // Tach string
     function claimReward(uint256[] memory _tokens) public {
         require(winningWallets == address(0), "The winner has been found");
-        string[] memory valueTokens = new string[](_tokens.length);
+        string memory newValue = "";
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(ownerOf(_tokens[i]) == msg.sender, "must own all tokens");
-            string memory value = getValue(_tokens[i]);
-            valueTokens[i] = value;
+            newValue = string.concat(newValue, getValue(_tokens[i]), " ");
         }
 
-        bool isWin = utils.compareArrays(valueTokens, superKey);
+        bool isWin = utils.compare(string(newValue), string(superKey));
         require(isWin, "YOU LOST!");
 
         newValues[0][mintCount() + 1] = "KEY";
@@ -242,10 +234,11 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
             );
     }
 
-    function renderSvg(
-        string memory value,
-        string memory color
-    ) internal pure returns (string memory svg) {
+    function renderSvg(string memory value, string memory color)
+        internal
+        pure
+        returns (string memory svg)
+    {
         svg = '<svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg"><rect id="bg" x="0" y="0" width="300" height="300" fill="#0C0C0C"/><style>';
 
         string memory styles = string(
@@ -279,10 +272,11 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
         return string(abi.encodePacked(svg, styles, "</svg>"));
     }
 
-    function isCharInString(
-        string memory c,
-        string memory s
-    ) internal pure returns (bool) {
+    function isCharInString(string memory c, string memory s)
+        internal
+        pure
+        returns (bool)
+    {
         bytes memory bStr = bytes(s);
         bytes1 bChar = bytes1(bytes(c));
 
@@ -311,7 +305,11 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
     }
 
     function setSuperKey(string[] memory _superKey) public onlyOwner {
-        superKey = _superKey;
+        string memory newValue = "";
+        for (uint256 i = 0; i < _superKey.length; i++) {
+            newValue = string.concat(newValue, _superKey[i], " ");
+        }
+        superKey = newValue;
         isCombinable = false;
     }
 
@@ -329,18 +327,19 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
         mintPhaseDuration = _mintPhaseDuration;
     }
 
-    function setPhaseValues(
-        uint256 _phase,
-        string memory _values
-    ) public onlyOwner {
+    function setPhaseValues(uint256 _phase, string memory _values)
+        public
+        onlyOwner
+    {
         phaseValues[_phase] = _values;
     }
 
-    function setPhaseKey(
-        uint256 _phase,
-        string[] memory _key
-    ) public onlyOwner {
+    function setPhaseKey(uint256 _phase, string[] memory _key)
+        public
+        onlyOwner
+    {
         phaseKey[_phase] = _key;
+        isCombinable = false;
     }
 
     function toggleCombinable() public onlyOwner {
@@ -351,9 +350,13 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
         return 1;
     }
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view virtual override(ERC721A, IERC721A) returns (string memory) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override(ERC721A, IERC721A)
+        returns (string memory)
+    {
         bool burned;
         bool combined;
         bool isKey;
