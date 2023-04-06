@@ -38,6 +38,21 @@ library utils {
             keccak256(abi.encodePacked(str2));
     }
 
+    function findString(string memory _string, string[] memory array)
+        internal
+        pure
+        returns (bool)
+    {
+        for (uint256 i = 0; i < array.length; i++) {
+            string memory stringToFind = array[i];
+            bool exists = compare(stringToFind, _string);
+            if (exists == true) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function secondsRemaining(uint256 end) internal view returns (uint256) {
         if (block.timestamp <= end) {
             return end - block.timestamp;

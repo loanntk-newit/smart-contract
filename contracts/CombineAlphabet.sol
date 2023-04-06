@@ -32,6 +32,7 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
     constructor() ERC721A("BG_BLACK", "BB") {}
 
     function mint(uint256 quantity, string memory value) public payable {
+        require(bytes(value).length == 1, "can only choose 1 character");
         require(
             isCharInString(value, phaseValues[currentPhase]),
             string.concat("value not in ", phaseValues[currentPhase])
@@ -98,10 +99,17 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
             newValue = string.concat(newValue, getValue(tokens[i]));
         }
 
+        for (uint256 i = 1; i <= currentPhase; i++) {
+            require(
+                !utils.findString(newValue, phaseKey[i]),
+                "cannot combine the value that is the key of the previous phase"
+            );
+        }
+
         for (uint256 i = 1; i < tokens.length; i++) {
             _burn(tokens[i]);
             newValues[currentPhase][tokens[i]] = "";
-            newValues[0][tokens[0]] = newValue;
+            newValues[0][tokens[i]] = "";
             emit MetadataUpdate(tokens[i]);
         }
         newValues[currentPhase][tokens[0]] = newValue;
@@ -215,10 +223,12 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
                     '{"trait_type": "Mint Phase", "value": "',
                     utils.uint2str(currentPhase),
                     '"}, {"trait_type": "Burned", "value": "No"}, {"trait_type": "Color", "value": "',
-                    baseColorNames[currentPhase],
+                    baseColorNames[currentPhase - 1],
                     '"}], "image": "data:image/svg+xml;base64,',
                     Base64.encode(
-                        bytes(renderSvg(value, baseColorNames[currentPhase]))
+                        bytes(
+                            renderSvg(value, baseColorNames[currentPhase - 1])
+                        )
                     ),
                     '"}'
                 )
@@ -243,9 +253,9 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
 
         string memory styles = string(
             abi.encodePacked(
-                '@import url("https://fonts.googleapis.com/css2?family=Beth+Ellen");',
+                '@import url("https://fonts.googleapis.com/css2?family=Megrim");',
                 "body{margin:0}#bg{fill:#0C0C0C}div{display:table;width:300px;height:300px;}",
-                "p{display:table-cell;text-align:center;vertical-align:middle;font-family:monospace;font-size:39px;word-spacing:-16px;color:",
+                "p{display:table-cell;text-align:center;vertical-align:middle;font-family: 'Megrim', cursive; font-size:40px; color:",
                 color,
                 "}</style>"
             )
