@@ -113,7 +113,7 @@ const MintTemplate = () => {
   useEffect(() => {
     if (contract && state.currentPhase) {
       const init = async () => {
-        dispatch({ key: 'phaseValues', value: await contract.phaseValues(1) })
+        dispatch({ key: 'phaseValues', value: await contract.phaseValues(state.currentPhase) })
         // dispatch({ key: 'phaseKey', value: await contract.phaseKey(state.currentPhase, 0) })
       }
       init()
