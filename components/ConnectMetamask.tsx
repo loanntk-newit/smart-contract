@@ -13,7 +13,7 @@ const ConnectMetamask = (props: Props) => {
     <>
       <button
         type="button"
-        className="w-[280px] h-[50px] text-default hover:text-default bg-transparent hover:bg-opacity-20 border-[3px] border-default hover:border-default rounded-none hover:shadow-[3px_3px_8px_0_rgba(91,91,91,1)] font-semibold text-2xl uppercase"
+        className="w-[280px] h-[50px] text-white hover:text-white bg-transparent hover:bg-opacity-20 border-[3px] border-white hover:border-white rounded-none hover:shadow-[3px_3px_8px_0_rgba(91,91,91,1)] font-semibold text-2xl uppercase"
         onClick={!props.isWalletConnected ? props.connectWallet : props.disconnectWallet}
       >
         <span className="flex items-center justify-center">

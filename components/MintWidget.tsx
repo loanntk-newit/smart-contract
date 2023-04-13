@@ -5,6 +5,7 @@ interface Props {
   userAddress: string | null
   price: BigNumber
   currentPhase: number
+  totalSupply: number
   phaseValues: string
   phaseKey: string[]
   balance: BigNumber
@@ -79,23 +80,17 @@ export default class MintWidget extends React.Component<Props, State> {
         <div className="px-0 sm:p-8 w-full relative text-white pt-14">
           <div className="flex flex-col space-y-4 w-full">
             <div className="flex items-center justify-center flex-col space-x-2">
-              {/* <p className="text-xl font-minecraftia">
-                {this.props.maxSupply} unique crypto nakamiapes on the blockchain with commercial
-                rights
-              </p>
-              <p className="text-5xl font-bold my-4">
-                {this.props.totalSupply}/{this.props.maxSupply}
-              </p> */}
+              <p className="text-5xl font-bold my-4">Total Supply: {this.props.totalSupply}</p>
             </div>
             <div className="flex flex-col gap-1 sm:gap-4 mx-auto">
               <div className="flex w-full items-center justify-between mx-auto">
                 <button
                   type="button"
-                  className="h-20 w-20 hover:bg-transparent rounded-none border-[3px] border-default border-opacity-30 hover:border-default hover:border-opacity-100 group"
+                  className="h-20 w-20 p-0 hover:bg-transparent rounded-none border-[3px] border-white border-opacity-30 hover:border-white hover:border-opacity-100 group"
                   onClick={() => this.decrementMintAmount()}
                 >
                   <div className="flex items-center justify-center">
-                    <span className="text-4xl text-default text-opacity-30 group-hover:text-opacity-100">
+                    <span className="text-6xl text-white text-opacity-30 group-hover:text-opacity-100">
                       -
                     </span>
                   </div>
@@ -105,11 +100,11 @@ export default class MintWidget extends React.Component<Props, State> {
                 </div>
                 <button
                   type="button"
-                  className="h-20 w-20 hover:bg-transparent rounded-none border-[3px] border-default border-opacity-30 hover:border-default hover:border-opacity-100 group"
+                  className="h-20 w-20 p-0 hover:bg-transparent rounded-none border-[3px] border-white border-opacity-30 hover:border-white hover:border-opacity-100 group"
                   onClick={() => this.incrementMintAmount()}
                 >
                   <div className="flex items-center justify-center">
-                    <span className="text-4xl text-default text-opacity-30 group-hover:text-opacity-100">
+                    <span className="text-6xl text-white text-opacity-30 group-hover:text-opacity-100">
                       +
                     </span>
                   </div>

@@ -16,6 +16,7 @@ interface State {
   userAddress: string | null
   price: BigNumber
   currentPhase: number
+  totalSupply: number
   isCombinable: boolean
   phaseValues: string
   phaseKey: string[]
@@ -28,6 +29,7 @@ const defaultState: State = {
   userAddress: null,
   price: BigNumber.from(0),
   currentPhase: 0,
+  totalSupply: 0,
   isCombinable: false,
   phaseValues: '',
   phaseKey: [],
@@ -45,6 +47,7 @@ const MintTemplate = () => {
   const { account, activate, deactivate, active, library } = useWeb3React<Web3Provider>()
   const [state, dispatch] = useReducer(reducer, defaultState)
   const [contract, setContract] = useState<any>()
+  const [chooseValue, setChooseValue] = useState<string | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -120,6 +123,7 @@ const MintTemplate = () => {
   const refreshContractState = async (): Promise<void> => {
     dispatch({ key: 'price', value: await contract.price() })
     dispatch({ key: 'currentPhase', value: (await contract.currentPhase()).toNumber() })
+    dispatch({ key: 'totalSupply', value: (await contract.totalSupply()).toNumber() })
     dispatch({ key: 'isCombinable', value: await contract.isCombinable() })
   }
 
@@ -129,6 +133,7 @@ const MintTemplate = () => {
 
   const refreshStateAfterMint = async (): Promise<void> => {
     dispatch({ key: 'currentPhase', value: (await contract.currentPhase()).toNumber() })
+    dispatch({ key: 'totalSupply', value: (await contract.totalSupply()).toNumber() })
   }
 
   const connectWallet = async () => {
@@ -186,11 +191,12 @@ const MintTemplate = () => {
       dispatch({ key: 'loading', value: true })
       let transaction
       if (!state.isPaused) {
-        transaction = await contract.mint(amount, {
+        console.log(amount, chooseValue)
+        transaction = await contract.mint(amount, chooseValue, {
           value: ethers.utils.parseUnits(price, 'ether'),
         })
       }
-
+      setChooseValue(null)
       dispatch({ key: 'loading', value: false })
       await transaction.wait()
       await refreshStateAfterMint()
@@ -212,7 +218,7 @@ const MintTemplate = () => {
           value: ethers.utils.parseUnits(price, 'ether'),
         })
       }
-
+      setChooseValue(null)
       dispatch({ key: 'loading', value: false })
       await transaction.wait()
       await refreshStateAfterMint()
@@ -231,19 +237,12 @@ const MintTemplate = () => {
       <div className="max-w-7xl w-full px-8 mx-auto md:mt-8 flex flex-col gap-8 items-center justify-between animate-fadeIn text-white">
         <div className="w-full rounded-3xl flex gap-8 text-center items-center justify-center mb-10 md:mb-0">
           <div className="animate-toBottom font-megrim text-center">
-            <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
-              <div className="flex gap-4 flex-wrap">
-                {state.phaseValues &&
-                  state.phaseValues.split('').map((character: string, i: number) => (
-                    <div key={i} className="border-">
-                      {character}
-                    </div>
-                  ))}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col-dense items-center gap-16">
               <MintWidget
                 userAddress={state.userAddress}
                 price={state.price}
                 currentPhase={state.currentPhase}
+                totalSupply={state.totalSupply}
                 phaseValues={state.phaseValues}
                 phaseKey={state.phaseKey}
                 balance={state.balance}
@@ -255,6 +254,24 @@ const MintTemplate = () => {
                 connectWallet={() => connectWallet()}
                 disconnectWallet={() => deactivate()}
               />
+              <div className="grid gap-4 grid-cols-[repeat(5,minmax(0,150px))] sm:grid-cols-[repeat(4,minmax(0,150px))]">
+                {state.phaseValues &&
+                  state.phaseValues.split('').map((character: string, i: number) => (
+                    <div
+                      key={i}
+                      className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
+                      style={{
+                        borderWidth: chooseValue == character ? '3px' : '2px',
+                        borderColor: chooseValue == character ? '#2771ff' : 'white',
+                        fontWeight: chooseValue == character ? 'bold' : 'normal',
+                        color: chooseValue == character ? '#2771ff' : 'white',
+                      }}
+                      onClick={() => setChooseValue(character)}
+                    >
+                      {character}
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         </div>
