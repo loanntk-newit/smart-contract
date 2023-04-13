@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './components/general.scss';
+
+@layer base {
+    @font-face {
+        font-family: 'Pixeled';
+        src: url('/fonts/Pixeled.ttf');
+    }
+    @font-face {
+        font-family: 'Minecraftia';
+        src: url('/fonts/Minecraftia.ttf');
+    }
+}
