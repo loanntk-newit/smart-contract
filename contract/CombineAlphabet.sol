@@ -15,8 +15,8 @@ contract BG_BLACK is ERC721A, Ownable, IERC4906 {
 
     uint256 public price = 0;
     uint256 public currentPhase = 0;
-    uint256 public mintDuration = 1 minutes;
-    uint256 public mintPhaseDuration = 2 minutes;
+    uint256 public mintDuration = 1 days;
+    uint256 public mintPhaseDuration = 30 minutes;
     uint256 public phaseEndTime;
     uint256 public currentPhaseStart = block.timestamp;
     uint256 public winningToken;
