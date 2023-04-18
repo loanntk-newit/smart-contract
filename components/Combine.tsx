@@ -20,6 +20,7 @@ interface State {
   isCombinable: boolean
   phaseValues: string
   phaseKey: string[]
+  ownerTokens: string[]
   loading: boolean
   balance: BigNumber
   errorMessage: string | JSX.Element | null
@@ -33,6 +34,7 @@ const defaultState: State = {
   isCombinable: false,
   phaseValues: '',
   phaseKey: [],
+  ownerTokens: [],
   loading: false,
   balance: BigNumber.from(0),
   errorMessage: null,
@@ -129,6 +131,15 @@ const CombineTemplate = () => {
 
   const refreshContractStateHasAddress = async (): Promise<void> => {
     dispatch({ key: 'balance', value: await contract.balanceOf(state.userAddress) })
+    const walletOfOwner = await contract.walletOfOwner(state.userAddress)
+    const tokens = await Promise.all(
+      walletOfOwner.map((token: BigNumber) => getValue(token.toNumber()))
+    )
+    dispatch({ key: 'ownerTokens', value: tokens })
+  }
+
+  const getValue = async (token: number): Promise<string> => {
+    return await contract.getValue(token)
   }
 
   const refreshStateAfterMint = async (): Promise<void> => {
@@ -238,39 +249,28 @@ const CombineTemplate = () => {
         <div className="w-full rounded-3xl flex gap-8 text-center items-center justify-center mb-10 md:mb-0">
           <div className="animate-toBottom font-megrim text-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col-dense items-center gap-16">
-              <MintWidget
-                userAddress={state.userAddress}
-                price={state.price}
-                currentPhase={state.currentPhase}
-                totalSupply={state.totalSupply}
-                phaseValues={state.phaseValues}
-                phaseKey={state.phaseKey}
-                balance={state.balance}
-                loading={state.loading}
-                isWalletConnected={active}
-                disabled={!isWalletConnected()}
-                mintTokens={(mintAmount, price) => mintTokens(mintAmount, price)}
-                mintPack={(price) => mintPack(price)}
-                connectWallet={() => connectWallet()}
-                disconnectWallet={() => deactivate()}
-              />
               <div className="grid gap-4 grid-cols-[repeat(5,minmax(0,150px))] sm:grid-cols-[repeat(4,minmax(0,150px))]">
-                {state.phaseValues &&
-                  state.phaseValues.split('').map((character: string, i: number) => (
-                    <div
-                      key={i}
-                      className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
-                      style={{
-                        borderWidth: chooseValue == character ? '3px' : '2px',
-                        borderColor: chooseValue == character ? '#2771ff' : 'white',
-                        fontWeight: chooseValue == character ? 'bold' : 'normal',
-                        color: chooseValue == character ? '#2771ff' : 'white',
-                      }}
-                      onClick={() => setChooseValue(character)}
-                    >
-                      {character}
-                    </div>
-                  ))}
+                {state.ownerTokens && state.ownerTokens.length == 0 ? (
+                  <>You don&lsquo;t have any tokens.</>
+                ) : (
+                  <>
+                    {state.ownerTokens.map((character: string, i: number) => (
+                      <div
+                        key={i}
+                        className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
+                        style={{
+                          borderWidth: chooseValue == character ? '3px' : '2px',
+                          borderColor: chooseValue == character ? '#2771ff' : 'white',
+                          fontWeight: chooseValue == character ? 'bold' : 'normal',
+                          color: chooseValue == character ? '#2771ff' : 'white',
+                        }}
+                        onClick={() => setChooseValue(character)}
+                      >
+                        {character}
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           </div>
