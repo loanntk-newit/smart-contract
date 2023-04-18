@@ -9,6 +9,7 @@ import { switchChain } from '../utils/switchChain'
 import config from '../config'
 import { getContractProvider } from '../utils/getContractProvider'
 import MintWidget from './MintWidget'
+import { Checkbox } from '@material-tailwind/react'
 
 const contractAbi = require('../abi/contract.abi.json')
 
@@ -20,7 +21,8 @@ interface State {
   isCombinable: boolean
   phaseValues: string
   phaseKey: string[]
-  ownerTokens: string[]
+  ownerTokens: number[]
+  ownerValues: string[]
   loading: boolean
   balance: BigNumber
   errorMessage: string | JSX.Element | null
@@ -35,6 +37,7 @@ const defaultState: State = {
   phaseValues: '',
   phaseKey: [],
   ownerTokens: [],
+  ownerValues: [],
   loading: false,
   balance: BigNumber.from(0),
   errorMessage: null,
@@ -49,7 +52,7 @@ const CombineTemplate = () => {
   const { account, activate, deactivate, active, library } = useWeb3React<Web3Provider>()
   const [state, dispatch] = useReducer(reducer, defaultState)
   const [contract, setContract] = useState<any>()
-  const [chooseValue, setChooseValue] = useState<string | null>(null)
+  const [isCheck, setIsCheck] = useState<string[]>([])
 
   useEffect(() => {
     const init = async () => {
@@ -132,10 +135,12 @@ const CombineTemplate = () => {
   const refreshContractStateHasAddress = async (): Promise<void> => {
     dispatch({ key: 'balance', value: await contract.balanceOf(state.userAddress) })
     const walletOfOwner = await contract.walletOfOwner(state.userAddress)
-    const tokens = await Promise.all(
+    const tokens = walletOfOwner.map((token: BigNumber) => token.toNumber())
+    const values = await Promise.all(
       walletOfOwner.map((token: BigNumber) => getValue(token.toNumber()))
     )
     dispatch({ key: 'ownerTokens', value: tokens })
+    dispatch({ key: 'ownerValues', value: values })
   }
 
   const getValue = async (token: number): Promise<string> => {
@@ -202,12 +207,11 @@ const CombineTemplate = () => {
       dispatch({ key: 'loading', value: true })
       let transaction
       if (!state.isPaused) {
-        console.log(amount, chooseValue)
-        transaction = await contract.mint(amount, chooseValue, {
+        transaction = await contract.mint(amount, isCheck, {
           value: ethers.utils.parseUnits(price, 'ether'),
         })
       }
-      setChooseValue(null)
+      setIsCheck([])
       dispatch({ key: 'loading', value: false })
       await transaction.wait()
       await refreshStateAfterMint()
@@ -229,7 +233,7 @@ const CombineTemplate = () => {
           value: ethers.utils.parseUnits(price, 'ether'),
         })
       }
-      setChooseValue(null)
+      setIsCheck([])
       dispatch({ key: 'loading', value: false })
       await transaction.wait()
       await refreshStateAfterMint()
@@ -242,6 +246,14 @@ const CombineTemplate = () => {
     }
   }
 
+  const handleClick = (e: any) => {
+    const { id, checked } = e.target
+    setIsCheck([...isCheck, id])
+    if (!checked) {
+      setIsCheck(isCheck.filter((item) => item !== id))
+    }
+  }
+
   return (
     <div className="relative bg-black min-h-screen flex justify-center items-center pt-[60px] sm:pt-[72px]">
       {state.loading ? <Loading /> : null}
@@ -250,24 +262,28 @@ const CombineTemplate = () => {
           <div className="animate-toBottom font-megrim text-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col-dense items-center gap-16">
               <div className="grid gap-4 grid-cols-[repeat(5,minmax(0,150px))] sm:grid-cols-[repeat(4,minmax(0,150px))]">
-                {state.ownerTokens && state.ownerTokens.length == 0 ? (
+                {state.ownerValues && state.ownerValues.length == 0 ? (
                   <>You don&lsquo;t have any tokens.</>
                 ) : (
                   <>
-                    {state.ownerTokens.map((character: string, i: number) => (
-                      <div
+                    {state.ownerValues.map((value: string, i: number) => (
+                      <input
+                        type="checkbox"
                         key={i}
                         className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
-                        style={{
-                          borderWidth: chooseValue == character ? '3px' : '2px',
-                          borderColor: chooseValue == character ? '#2771ff' : 'white',
-                          fontWeight: chooseValue == character ? 'bold' : 'normal',
-                          color: chooseValue == character ? '#2771ff' : 'white',
-                        }}
-                        onClick={() => setChooseValue(character)}
-                      >
-                        {character}
-                      </div>
+                        style={
+                          {
+                            // borderWidth: chooseValue[] == character ? '3px' : '2px',
+                            // borderColor: chooseValue == character ? '#2771ff' : 'white',
+                            // fontWeight: chooseValue == character ? 'bold' : 'normal',
+                            // color: chooseValue == character ? '#2771ff' : 'white',
+                          }
+                        }
+                        id={state.ownerTokens[i]}
+                        value={value}
+                        onClick={() => handleClick}
+                        defaultChecked={isCheck.includes(value)}
+                      />
                     ))}
                   </>
                 )}
