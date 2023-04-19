@@ -21,8 +21,10 @@ interface State {
   isCombinable: boolean
   phaseValues: string
   phaseKey: string[]
-  ownerTokens: number[]
-  ownerValues: string[]
+  ownerTokens: {
+    token: number
+    value: string
+  }[]
   loading: boolean
   balance: BigNumber
   errorMessage: string | JSX.Element | null
@@ -37,7 +39,6 @@ const defaultState: State = {
   phaseValues: '',
   phaseKey: [],
   ownerTokens: [],
-  ownerValues: [],
   loading: false,
   balance: BigNumber.from(0),
   errorMessage: null,
@@ -125,6 +126,47 @@ const CombineTemplate = () => {
     }
   }, [contract, state.currentPhase])
 
+  useEffect(() => {
+    if (state.userAddress && state.currentPhase) {
+      const init = async () => {
+        const walletOfOwner = await contract.walletOfOwner(state.userAddress)
+        const values = await Promise.all(
+          walletOfOwner.map((token: BigNumber) => ({
+            token: token.toNumber(),
+            value: getValueInPhase(token.toNumber(), state.currentPhase),
+          }))
+        )
+        const tokens = await Promise.all(values.filter((elm) => elm.value != ''))
+        dispatch({ key: 'ownerTokens', value: tokens })
+      }
+      init()
+    }
+  }, [state.userAddress, state.currentPhase])
+
+  //   // Async IIFE
+
+  //   const myArray = [1, 2, 3, 4, 5]
+
+  //   // This is exactly what you'd expect to write
+  //   const results = await filter(myArray, async num => {
+  //     await doAsyncStuff()
+  //     return num > 2
+  //   })
+
+  //   console.log(results)
+  // })()
+
+  // // Arbitrary asynchronous function
+  // function doAsyncStuff() {
+  //   return Promise.resolve()
+  // }
+
+  // // The helper function
+  // async function filter(arr, callback) {
+  //   const fail = Symbol()
+  //   return (await Promise.all(arr.map(async item => (await callback(item)) ? item : fail))).filter(i=>i!==fail)
+  // }
+
   const refreshContractState = async (): Promise<void> => {
     dispatch({ key: 'price', value: await contract.price() })
     dispatch({ key: 'currentPhase', value: (await contract.currentPhase()).toNumber() })
@@ -134,17 +176,14 @@ const CombineTemplate = () => {
 
   const refreshContractStateHasAddress = async (): Promise<void> => {
     dispatch({ key: 'balance', value: await contract.balanceOf(state.userAddress) })
-    const walletOfOwner = await contract.walletOfOwner(state.userAddress)
-    const tokens = walletOfOwner.map((token: BigNumber) => token.toNumber())
-    const values = await Promise.all(
-      walletOfOwner.map((token: BigNumber) => getValue(token.toNumber()))
-    )
-    dispatch({ key: 'ownerTokens', value: tokens })
-    dispatch({ key: 'ownerValues', value: values })
   }
 
   const getValue = async (token: number): Promise<string> => {
     return await contract.getValue(token)
+  }
+
+  const getValueInPhase = async (token: number, phase: number): Promise<string> => {
+    return await contract.getValueInPhase(token, phase)
   }
 
   const refreshStateAfterMint = async (): Promise<void> => {
@@ -262,11 +301,11 @@ const CombineTemplate = () => {
           <div className="animate-toBottom font-megrim text-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col-dense items-center gap-16">
               <div className="grid gap-4 grid-cols-[repeat(5,minmax(0,150px))] sm:grid-cols-[repeat(4,minmax(0,150px))]">
-                {state.ownerValues && state.ownerValues.length == 0 ? (
+                {state.ownerTokens && state.ownerTokens.length == 0 ? (
                   <>You don&lsquo;t have any tokens.</>
                 ) : (
                   <>
-                    {state.ownerValues.map((value: string, i: number) => (
+                    {state.ownerTokens.map((value: string, i: number) => (
                       <input
                         type="checkbox"
                         key={i}
