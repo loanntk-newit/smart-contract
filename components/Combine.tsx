@@ -131,41 +131,16 @@ const CombineTemplate = () => {
       const init = async () => {
         const walletOfOwner = await contract.walletOfOwner(state.userAddress)
         const values = await Promise.all(
-          walletOfOwner.map((token: BigNumber) => ({
-            token: token.toNumber(),
-            value: getValueInPhase(token.toNumber(), state.currentPhase),
-          }))
+          walletOfOwner.map(async (token: BigNumber) =>
+            getValueInPhase(token.toNumber(), state.currentPhase)
+          )
         )
-        const tokens = await Promise.all(values.filter((elm) => elm.value != ''))
+        const tokens = values.filter((elm) => elm.value != '')
         dispatch({ key: 'ownerTokens', value: tokens })
       }
       init()
     }
   }, [state.userAddress, state.currentPhase])
-
-  //   // Async IIFE
-
-  //   const myArray = [1, 2, 3, 4, 5]
-
-  //   // This is exactly what you'd expect to write
-  //   const results = await filter(myArray, async num => {
-  //     await doAsyncStuff()
-  //     return num > 2
-  //   })
-
-  //   console.log(results)
-  // })()
-
-  // // Arbitrary asynchronous function
-  // function doAsyncStuff() {
-  //   return Promise.resolve()
-  // }
-
-  // // The helper function
-  // async function filter(arr, callback) {
-  //   const fail = Symbol()
-  //   return (await Promise.all(arr.map(async item => (await callback(item)) ? item : fail))).filter(i=>i!==fail)
-  // }
 
   const refreshContractState = async (): Promise<void> => {
     dispatch({ key: 'price', value: await contract.price() })
@@ -182,8 +157,11 @@ const CombineTemplate = () => {
     return await contract.getValue(token)
   }
 
-  const getValueInPhase = async (token: number, phase: number): Promise<string> => {
-    return await contract.getValueInPhase(token, phase)
+  const getValueInPhase = async (token: number, phase: number) => {
+    return {
+      token: token,
+      value: await contract.getValueInPhase(token, phase),
+    }
   }
 
   const refreshStateAfterMint = async (): Promise<void> => {
@@ -241,36 +219,12 @@ const CombineTemplate = () => {
     return state.userAddress !== null
   }
 
-  const mintTokens = async (amount: number, price: string): Promise<void> => {
+  const combine = async (): Promise<void> => {
     try {
       dispatch({ key: 'loading', value: true })
       let transaction
       if (!state.isPaused) {
-        transaction = await contract.mint(amount, isCheck, {
-          value: ethers.utils.parseUnits(price, 'ether'),
-        })
-      }
-      setIsCheck([])
-      dispatch({ key: 'loading', value: false })
-      await transaction.wait()
-      await refreshStateAfterMint()
-    } catch (e) {
-      console.log(e)
-      alert(
-        'An error occurred during the transaction. \n\nPlease check and ensure you have sufficient Gas and funds to complete this transaction.\n\nTry reconnecting or switching to a different wallet, then refresh the page to proceed with the transaction.'
-      )
-      dispatch({ key: 'loading', value: false })
-    }
-  }
-
-  const mintPack = async (price: string): Promise<void> => {
-    try {
-      dispatch({ key: 'loading', value: true })
-      let transaction
-      if (!state.isPaused) {
-        transaction = await contract.mintPack({
-          value: ethers.utils.parseUnits(price, 'ether'),
-        })
+        transaction = await contract.combine(isCheck)
       }
       setIsCheck([])
       dispatch({ key: 'loading', value: false })
@@ -300,29 +254,61 @@ const CombineTemplate = () => {
         <div className="w-full rounded-3xl flex gap-8 text-center items-center justify-center mb-10 md:mb-0">
           <div className="animate-toBottom font-megrim text-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-col-dense items-center gap-16">
+              <div className=" flex flex-col justify-center items-center gap-4">
+                <div
+                  onClick={(e) => handleClick(e)}
+                  className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
+                >
+                  {isCheck.map(
+                    (token) => state.ownerTokens.find((elm: any) => elm.token == token).value
+                  )}
+                </div>
+                <button
+                  className="w-[280px] h-[50px] bg-[linear-gradient(45deg,#AF00DB_0%,#FF8A00_100%)] hover:bg-[linear-gradient(45deg,#AF00DB_50%,#FF8A00_100%)] text-white hover:text-white border-none rounded-none hover:shadow-[3px_3px_8px_0_rgba(91,91,91,1)] py-2 font-semibold text-2xl uppercase disabled:bg-[#B7B7B7] disabled:text-[#090909] disabled:hover:cursor-not-allowed"
+                  disabled={!state.isCombinable || isCheck.length == 0}
+                  onClick={() => combine()}
+                >
+                  <span className="flex items-center relative h-full w-full opacity-100 justify-center">
+                    <span className="flex items-center px-2">Combine</span>
+                  </span>
+                </button>
+              </div>
+
               <div className="grid gap-4 grid-cols-[repeat(5,minmax(0,150px))] sm:grid-cols-[repeat(4,minmax(0,150px))]">
                 {state.ownerTokens && state.ownerTokens.length == 0 ? (
                   <>You don&lsquo;t have any tokens.</>
                 ) : (
                   <>
-                    {state.ownerTokens.map((value: string, i: number) => (
-                      <input
-                        type="checkbox"
-                        key={i}
-                        className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
-                        style={
-                          {
-                            // borderWidth: chooseValue[] == character ? '3px' : '2px',
-                            // borderColor: chooseValue == character ? '#2771ff' : 'white',
-                            // fontWeight: chooseValue == character ? 'bold' : 'normal',
-                            // color: chooseValue == character ? '#2771ff' : 'white',
+                    {state.ownerTokens.map((elm: any, i: number) => (
+                      <label key={i} htmlFor={elm.token}>
+                        <div
+                          onClick={(e) => handleClick(e)}
+                          className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
+                          style={
+                            isCheck.includes(elm.token)
+                              ? {
+                                  borderWidth: '3px',
+                                  borderColor: '#2771ff',
+                                  fontWeight: 'bold',
+                                  color: '#2771ff',
+                                }
+                              : {
+                                  borderWidth: '2px',
+                                  borderColor: 'white',
+                                  fontWeight: 'normal',
+                                  color: 'white',
+                                }
                           }
-                        }
-                        id={state.ownerTokens[i]}
-                        value={value}
-                        onClick={() => handleClick}
-                        defaultChecked={isCheck.includes(value)}
-                      />
+                        >
+                          <input
+                            type="checkbox"
+                            id={elm.token}
+                            value={elm.token}
+                            className="absolute opacity-0 -left-full"
+                          />
+                          {elm.value}
+                        </div>
+                      </label>
                     ))}
                   </>
                 )}
