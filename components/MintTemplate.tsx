@@ -47,6 +47,7 @@ const MintTemplate = () => {
   const { account, activate, deactivate, active, library } = useWeb3React<Web3Provider>()
   const [state, dispatch] = useReducer(reducer, defaultState)
   const [contract, setContract] = useState<any>()
+  const [waiting, setWaiting] = useState<boolean>(false)
   const [chooseValue, setChooseValue] = useState<string | null>(null)
 
   useEffect(() => {
@@ -123,7 +124,7 @@ const MintTemplate = () => {
   const refreshContractState = async (): Promise<void> => {
     dispatch({ key: 'price', value: await contract.price() })
     dispatch({ key: 'currentPhase', value: (await contract.currentPhase()).toNumber() })
-    dispatch({ key: 'totalSupply', value: (await contract.totalSupply()).toNumber() })
+    dispatch({ key: 'totalSupply', value: (await contract.mintCount()).toNumber() })
     dispatch({ key: 'isCombinable', value: await contract.isCombinable() })
   }
 
@@ -133,7 +134,7 @@ const MintTemplate = () => {
 
   const refreshStateAfterMint = async (): Promise<void> => {
     dispatch({ key: 'currentPhase', value: (await contract.currentPhase()).toNumber() })
-    dispatch({ key: 'totalSupply', value: (await contract.totalSupply()).toNumber() })
+    dispatch({ key: 'totalSupply', value: (await contract.mintCount()).toNumber() })
   }
 
   const connectWallet = async () => {
@@ -198,8 +199,10 @@ const MintTemplate = () => {
       }
       setChooseValue(null)
       dispatch({ key: 'loading', value: false })
+      setWaiting(true)
       await transaction.wait()
       await refreshStateAfterMint()
+      setWaiting(false)
     } catch (e) {
       console.log(e)
       alert(
@@ -248,7 +251,7 @@ const MintTemplate = () => {
                 balance={state.balance}
                 loading={state.loading}
                 isWalletConnected={active}
-                disabled={!isWalletConnected()}
+                disabled={!chooseValue || waiting}
                 mintTokens={(mintAmount, price) => mintTokens(mintAmount, price)}
                 mintPack={(price) => mintPack(price)}
                 connectWallet={() => connectWallet()}

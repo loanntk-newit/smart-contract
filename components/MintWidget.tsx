@@ -143,7 +143,6 @@ export default class MintWidget extends React.Component<Props, State> {
                   !this.props.isWalletConnected ||
                   this.props.currentPhase == 0 ||
                   this.props.loading ||
-                  this.props.disabled ||
                   this.props.phaseValues.length == 0
                 }
                 onClick={() => this.mint(1, true)}

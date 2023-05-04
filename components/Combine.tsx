@@ -128,25 +128,26 @@ const CombineTemplate = () => {
 
   useEffect(() => {
     if (state.userAddress && state.currentPhase) {
-      const init = async () => {
-        const walletOfOwner = await contract.walletOfOwner(state.userAddress)
-        const values = await Promise.all(
-          walletOfOwner.map(async (token: BigNumber) =>
-            getValueInPhase(token.toNumber(), state.currentPhase)
-          )
-        )
-        const tokens = values.filter((elm) => elm.value != '')
-        dispatch({ key: 'ownerTokens', value: tokens })
-      }
-      init()
+      refreshOwnerTokens()
     }
   }, [state.userAddress, state.currentPhase])
 
   const refreshContractState = async (): Promise<void> => {
     dispatch({ key: 'price', value: await contract.price() })
     dispatch({ key: 'currentPhase', value: (await contract.currentPhase()).toNumber() })
-    dispatch({ key: 'totalSupply', value: (await contract.totalSupply()).toNumber() })
+    dispatch({ key: 'totalSupply', value: (await contract.mintCount()).toNumber() })
     dispatch({ key: 'isCombinable', value: await contract.isCombinable() })
+  }
+
+  const refreshOwnerTokens = async (): Promise<void> => {
+    const walletOfOwner = await contract.walletOfOwner(state.userAddress)
+    const values = await Promise.all(
+      walletOfOwner.map(async (token: BigNumber) =>
+        getValueInPhase(token.toNumber(), state.currentPhase)
+      )
+    )
+    const tokens = values.filter((elm) => elm.value != '')
+    dispatch({ key: 'ownerTokens', value: tokens })
   }
 
   const refreshContractStateHasAddress = async (): Promise<void> => {
@@ -160,13 +161,14 @@ const CombineTemplate = () => {
   const getValueInPhase = async (token: number, phase: number) => {
     return {
       token: token,
-      value: await contract.getValueInPhase(token, phase),
+      value: await contract.newValues(phase, token),
     }
   }
 
   const refreshStateAfterMint = async (): Promise<void> => {
     dispatch({ key: 'currentPhase', value: (await contract.currentPhase()).toNumber() })
-    dispatch({ key: 'totalSupply', value: (await contract.totalSupply()).toNumber() })
+    dispatch({ key: 'totalSupply', value: (await contract.mintCount()).toNumber() })
+    refreshOwnerTokens()
   }
 
   const connectWallet = async () => {
@@ -227,7 +229,7 @@ const CombineTemplate = () => {
         transaction = await contract.combine(isCheck)
       }
       setIsCheck([])
-      dispatch({ key: 'loading', value: false })
+      // dispatch({ key: 'loading', value: false })
       await transaction.wait()
       await refreshStateAfterMint()
     } catch (e) {
@@ -235,6 +237,7 @@ const CombineTemplate = () => {
       alert(
         'An error occurred during the transaction. \n\nPlease check and ensure you have sufficient Gas and funds to complete this transaction.\n\nTry reconnecting or switching to a different wallet, then refresh the page to proceed with the transaction.'
       )
+    } finally {
       dispatch({ key: 'loading', value: false })
     }
   }

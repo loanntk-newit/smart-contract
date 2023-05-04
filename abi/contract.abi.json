@@ -156,19 +156,6 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_finalBlock",
-        "type": "uint256"
-      }
-    ],
-    "name": "CountdownExtended",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
         "name": "_tokenId",
         "type": "uint256"
       }
@@ -297,19 +284,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "currentPhaseStart",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -337,30 +311,6 @@
       }
     ],
     "name": "getValue",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_phase",
-        "type": "uint256"
-      }
-    ],
-    "name": "getValueInPhase",
     "outputs": [
       {
         "internalType": "string",
@@ -454,19 +404,6 @@
   },
   {
     "inputs": [],
-    "name": "mintDuration",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "mintPack",
     "outputs": [],
     "stateMutability": "payable",
@@ -474,20 +411,31 @@
   },
   {
     "inputs": [],
-    "name": "mintPhaseDuration",
+    "name": "name",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "string",
         "name": "",
-        "type": "uint256"
+        "type": "string"
       }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "name",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "newValues",
     "outputs": [
       {
         "internalType": "string",
@@ -525,19 +473,6 @@
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "phaseEndTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -684,32 +619,6 @@
       }
     ],
     "name": "setCurrentPhase",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_mintDuration",
-        "type": "uint256"
-      }
-    ],
-    "name": "setMintDuration",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_mintPhaseDuration",
-        "type": "uint256"
-      }
-    ],
-    "name": "setMintPhaseDuration",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
