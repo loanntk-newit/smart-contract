@@ -45,7 +45,7 @@ const reducer = (state: any, action: any) => {
   return { ...state }
 }
 
-const CombineTemplate = () => {
+const MatchTemplate = () => {
   const { account, activate, deactivate, active, library } = useWeb3React<Web3Provider>()
   const [state, dispatch] = useReducer(reducer, defaultState)
   const [contract, setContract] = useState<any>()
@@ -142,6 +142,7 @@ const CombineTemplate = () => {
       )
     )
     const tokens = values.filter((elm) => elm.value != '')
+    console.log(tokens)
     dispatch({ key: 'ownerTokens', value: tokens })
   }
 
@@ -156,7 +157,7 @@ const CombineTemplate = () => {
   const getValueInPhase = async (token: number, phase: number) => {
     return {
       token: token,
-      value: await contract.newValues(phase, token),
+      value: await contract.newValues(0, token),
     }
   }
 
@@ -215,24 +216,28 @@ const CombineTemplate = () => {
     return state.userAddress !== null
   }
 
-  const combine = async (): Promise<void> => {
-    try {
-      dispatch({ key: 'loading', value: true })
-      let transaction
-      if (!state.isPaused) {
-        transaction = await contract.combine(isCheck)
+  const matchStr = async (): Promise<void> => {
+    if (state.isCombinable) {
+      alert('Cannot perform this action when combining is active!')
+    } else {
+      try {
+        dispatch({ key: 'loading', value: true })
+        let transaction
+        if (!state.isPaused) {
+          transaction = await contract.matchStr(isCheck)
+        }
+        setIsCheck([])
+        // dispatch({ key: 'loading', value: false })
+        await transaction.wait()
+        await refreshStateAfterMint()
+      } catch (e) {
+        console.log(e)
+        alert(
+          'An error occurred during the transaction. \n\nPlease check and ensure you have sufficient Gas and funds to complete this transaction.\n\nTry reconnecting or switching to a different wallet, then refresh the page to proceed with the transaction.'
+        )
+      } finally {
+        dispatch({ key: 'loading', value: false })
       }
-      setIsCheck([])
-      // dispatch({ key: 'loading', value: false })
-      await transaction.wait()
-      await refreshStateAfterMint()
-    } catch (e) {
-      console.log(e)
-      alert(
-        'An error occurred during the transaction. \n\nPlease check and ensure you have sufficient Gas and funds to complete this transaction.\n\nTry reconnecting or switching to a different wallet, then refresh the page to proceed with the transaction.'
-      )
-    } finally {
-      dispatch({ key: 'loading', value: false })
     }
   }
 
@@ -254,28 +259,20 @@ const CombineTemplate = () => {
               <div className=" flex flex-col justify-center items-center gap-4">
                 <div
                   onClick={(e) => handleClick(e)}
-                  className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
+                  className="border-2 max-w-xs w-full aspect-square leading-snug flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
                 >
                   {isCheck.map(
-                    (token) => state.ownerTokens.find((elm: any) => elm.token == token).value
+                    (token) =>
+                      state.ownerTokens.find((elm: any) => elm.token == token)?.value + '\n'
                   )}
                 </div>
                 <button
                   className="w-[280px] h-[50px] bg-[linear-gradient(45deg,#AF00DB_0%,#FF8A00_100%)] hover:bg-[linear-gradient(45deg,#AF00DB_50%,#FF8A00_100%)] text-white hover:text-white border-none rounded-none hover:shadow-[3px_3px_8px_0_rgba(91,91,91,1)] py-2 font-semibold text-2xl uppercase disabled:bg-[#B7B7B7] disabled:text-[#090909] disabled:hover:cursor-not-allowed"
-                  disabled={!state.isCombinable || isCheck.length == 0}
-                  onClick={() => combine()}
+                  disabled={state.isCombinable || isCheck.length == 0}
+                  onClick={() => matchStr()}
                 >
                   <span className="flex items-center relative h-full w-full opacity-100 justify-center">
-                    <span className="flex items-center px-2">Combine</span>
-                  </span>
-                </button>
-                <hr />
-                <button
-                  className="w-[280px] h-[50px] bg-[linear-gradient(45deg,#AF00DB_0%,#FF8A00_100%)] hover:bg-[linear-gradient(45deg,#AF00DB_50%,#FF8A00_100%)] text-white hover:text-white border-none rounded-none hover:shadow-[3px_3px_8px_0_rgba(91,91,91,1)] py-2 font-semibold text-2xl uppercase disabled:bg-[#B7B7B7] disabled:text-[#090909] disabled:hover:cursor-not-allowed"
-                  onClick={() => (window.location.href = '/match')}
-                >
-                  <span className="flex items-center relative h-full w-full opacity-100 justify-center">
-                    <span className="flex items-center px-2">Match &gt;&gt;</span>
+                    <span className="flex items-center px-2">Match</span>
                   </span>
                 </button>
               </div>
@@ -289,7 +286,7 @@ const CombineTemplate = () => {
                       <label key={i} htmlFor={elm.token}>
                         <div
                           onClick={(e) => handleClick(e)}
-                          className="border-2 max-w-xs w-full aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
+                          className="border-2 max-w-xs w-full leading-snug aspect-square flex justify-center items-center text-[4rem] cursor-pointer hover:font-bold hover:border-4"
                           style={
                             isCheck.includes(elm.token)
                               ? {
@@ -327,4 +324,4 @@ const CombineTemplate = () => {
   )
 }
 
-export default CombineTemplate
+export default MatchTemplate

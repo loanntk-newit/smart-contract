@@ -151,6 +151,15 @@ export default class MintWidget extends React.Component<Props, State> {
                   <span className="flex items-center px-2">Mint 1 Pack</span>
                 </span>
               </button>
+              <hr />
+              <button
+                className="w-[280px] h-[50px] bg-[linear-gradient(45deg,#AF00DB_0%,#FF8A00_100%)] hover:bg-[linear-gradient(45deg,#AF00DB_50%,#FF8A00_100%)] text-white hover:text-white border-none rounded-none hover:shadow-[3px_3px_8px_0_rgba(91,91,91,1)] py-2 font-semibold text-2xl uppercase disabled:bg-[#B7B7B7] disabled:text-[#090909] disabled:hover:cursor-not-allowed"
+                onClick={() => (window.location.href = '/combine')}
+              >
+                <span className="flex items-center relative h-full w-full opacity-100 justify-center">
+                  <span className="flex items-center px-2">Combine &gt;&gt;</span>
+                </span>
+              </button>
             </div>
           </div>
         </div>

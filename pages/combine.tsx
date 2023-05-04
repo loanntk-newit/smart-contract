@@ -11,8 +11,8 @@ const getLibrary = (provider: any): Web3Provider => {
   return library
 }
 
-const Mint: NextPageWithAuth = () => {
-  useTitle('')
+const Combine: NextPageWithAuth = () => {
+  useTitle('COMBINE')
 
   return (
     <React.StrictMode>
@@ -23,6 +23,6 @@ const Mint: NextPageWithAuth = () => {
   )
 }
 
-Mint.layout = Layout
+Combine.layout = Layout
 
-export default Mint
+export default Combine
